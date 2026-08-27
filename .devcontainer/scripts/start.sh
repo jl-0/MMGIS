@@ -15,7 +15,19 @@ SEED_VARIANT="${MMGIS_SEED_VARIANT:-default}"
 # The env file lives outside the repository so a generated demo credential can
 # never be committed or reach a Docker build context. Exported because the
 # compose file interpolates it too.
-export MMGIS_ENV_FILE="${MMGIS_ENV_FILE:-$HOME/.mmgis-codespace/.env}"
+# MMGIS_ENV_FILE is honoured only if it is an absolute path. devcontainer.json
+# does not expand ${containerEnv:HOME} inside containerEnv, so setting it there
+# put the literal string "${containerEnv:HOME}/..." into the environment, which
+# then resolved against the working directory and created a junk directory in
+# the repository. Anything not starting with / is ignored.
+resolve_env_file() {
+  case "${MMGIS_ENV_FILE:-}" in
+    /*) printf '%s\n' "$MMGIS_ENV_FILE" ;;
+    *)  printf '%s\n' "$HOME/.mmgis-codespace/.env" ;;
+  esac
+}
+
+export MMGIS_ENV_FILE="$(resolve_env_file)"
 if [ ! -f "$MMGIS_ENV_FILE" ]; then
   echo "[start] $MMGIS_ENV_FILE is missing; running setup-env.sh"
   .devcontainer/scripts/setup-env.sh

@@ -21,7 +21,19 @@
 # and DB_PASS are left as placeholders and filled in at start time.
 set -euo pipefail
 
-ENV_FILE="${MMGIS_ENV_FILE:-$HOME/.mmgis-codespace/.env}"
+# MMGIS_ENV_FILE is honoured only if it is an absolute path. devcontainer.json
+# does not expand ${containerEnv:HOME} inside containerEnv, so setting it there
+# put the literal string "${containerEnv:HOME}/..." into the environment, which
+# then resolved against the working directory and created a junk directory in
+# the repository. Anything not starting with / is ignored.
+resolve_env_file() {
+  case "${MMGIS_ENV_FILE:-}" in
+    /*) printf '%s\n' "$MMGIS_ENV_FILE" ;;
+    *)  printf '%s\n' "$HOME/.mmgis-codespace/.env" ;;
+  esac
+}
+
+ENV_FILE="$(resolve_env_file)"
 
 if [ -f "$ENV_FILE" ]; then
   echo "[setup-env] $ENV_FILE already exists; leaving it alone."
