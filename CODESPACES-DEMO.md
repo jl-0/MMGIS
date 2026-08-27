@@ -158,8 +158,14 @@ timeouts.
 - From [github.com/codespaces](https://github.com/codespaces): the **...** menu next to it -> **Stop codespace**
 - CLI: `gh codespace stop`
 
+Stopping costs nothing and ends the compute charge immediately; starting again is
+quick, because the image is already pulled and your data is still there.
+
 It also stops itself after 30 minutes of inactivity, which you can
 [change in your settings](https://docs.github.com/en/codespaces/setting-your-user-preferences/setting-your-timeout-period-for-github-codespaces).
+Leaving it to the timeout is not free, though: idle-but-running time is billed
+until the timeout fires, which on a 2-core machine is a full core-hour of your
+monthly allowance every time you walk away instead of stopping.
 
 **Delete it** (removes the container, the database, and anything you configured):
 
