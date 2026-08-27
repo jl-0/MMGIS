@@ -1,0 +1,66 @@
+# Base MMGIS stack for the Codespaces demo: just the app and PostGIS.
+# Derived from docker-compose.sample.yml with STAC / TiPG / TiTiler / Veloserver
+# omitted -- each one costs start-up time and memory against the visitor's quota.
+#
+# Credentials: nothing is written literally here. Every value is interpolated
+# from the env file that .devcontainer/scripts/setup-env.sh generates, so there
+# is one place to look and no "UPDATE ME" literal to forget. The `:?` form fails
+# the `up` with a readable message rather than silently starting Postgres with
+# an empty or default password.
+#
+# That env file lives OUTSIDE the repository ($MMGIS_ENV_FILE, by default
+# $HOME/.mmgis-codespace/.env) so a generated demo credential can never be
+# committed or copied into a Docker build context. Those credentials are
+# throwaway, generated per codespace, and reach nothing outside this container
+# network -- never reuse them anywhere real.
+#
+# TLS: none here on purpose. GitHub terminates TLS at the forwarded-port edge
+# (https://<codespace>-8888.app.github.dev) and proxies plain HTTP to 8888, so
+# MMGIS runs with HTTPS=false and no certificates.
+#
+# If a fork re-enables STAC / TiPG / TiTiler-pgSTAC, copy those services from
+# docker-compose.sample.yml but interpolate ${DB_USER} / ${DB_PASS} into their
+# POSTGRES_USER / POSTGRES_PASS instead of editing the sample's literals.
+services:
+  mmgis:
+    image: ${MMGIS_IMAGE:-ghcr.io/nasa-ammos/mmgis:latest}
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    env_file: ${MMGIS_ENV_FILE:?set by the devcontainer; see .devcontainer/scripts/setup-env.sh}
+    ports:
+      - 8888:8888
+    healthcheck:
+      test:
+        ["CMD", "curl", "-XGET", "http://mmgis:8888/api/utils/healthcheck"]
+      interval: 10s
+      retries: 12
+      start_period: 20s
+      timeout: 8s
+    restart: on-failure
+    volumes:
+      - ../Missions:/usr/src/app/Missions
+      # Mounted rather than assumed present: the published image predates this
+      # script, so the demo configuration would not otherwise have it.
+      - ../scripts/seed-reference-mission.js:/usr/src/app/scripts/seed-reference-mission.js:ro
+
+  db:
+    image: postgis/postgis:18-3.6-alpine
+    env_file: ${MMGIS_ENV_FILE:?set by the devcontainer; see .devcontainer/scripts/setup-env.sh}
+    environment:
+      - POSTGRES_USER=${DB_USER:?missing -- run .devcontainer/scripts/setup-env.sh}
+      - POSTGRES_PASSWORD=${DB_PASS:?missing -- run .devcontainer/scripts/setup-env.sh}
+    shm_size: "512m"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d postgres -U ${DB_USER:?}"]
+      interval: 5s
+      retries: 20
+      start_period: 10s
+      timeout: 5s
+    restart: on-failure
+    volumes:
+      - mmgis-db:/var/lib/postgresql
+
+volumes:
+  mmgis-db:

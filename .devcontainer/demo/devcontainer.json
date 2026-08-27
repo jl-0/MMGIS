@@ -1,0 +1,45 @@
+{
+  "name": "MMGIS Demo (published image)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  // 2-core / 8 GB is the smallest Codespaces machine and the cheapest against a
+  // visitor's included quota. Only mmgis + db run, so it should fit.
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "containerEnv": {
+    // Generated credentials live outside the working tree so they can never be
+    // committed or reach a Docker build context. See setup-env.sh.
+    "MMGIS_ENV_FILE": "${containerEnv:HOME}/.mmgis-codespace/.env",
+    // Pin a tag here. `latest` is the last release, `development` tracks the
+    // development branch. Both are multi-arch on ghcr.io/nasa-ammos/mmgis.
+    "MMGIS_IMAGE": "ghcr.io/nasa-ammos/mmgis:latest",
+    // Which Reference Mission variant start.sh seeds. See
+    // REFERENCE_MISSION_VARIANTS in plugins/core/backend/Utils/missionTemplates.js
+    // for the keys: default (Earth), Lunar-SouthPole, Mars.
+    "MMGIS_SEED_VARIANT": "default"
+  },
+  // NOTE: Codespaces prebuilds also run postCreateCommand, so anything secret
+  // generated here would be baked into the prebuild and shared by every
+  // codespace made from it. .env is written with an empty SECRET here; the
+  // secret is generated at start time instead.
+  "postCreateCommand": ".devcontainer/scripts/setup-env.sh",
+  "postStartCommand": ".devcontainer/scripts/start.sh demo",
+  "forwardPorts": [8888],
+  "portsAttributes": {
+    "8888": {
+      "label": "MMGIS",
+      "onAutoForward": "openBrowserOnce",
+      "protocol": "http"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-azuretools.vscode-docker"]
+    }
+  }
+}
