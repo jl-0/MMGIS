@@ -1,4 +1,10 @@
 {
+  // This is the ROOT configuration, so it is what Codespaces uses when someone
+  // creates a codespace without opening the options page -- the badge link, the
+  // green "Create codespace" button, ?quickstart=1. With only named configs
+  // under .devcontainer/<name>/, those paths silently fall back to the default
+  // universal image and MMGIS never starts. The `dev` alternative still appears
+  // in the "Dev container configuration" dropdown on the options page.
   "name": "MMGIS Demo (published image)",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
   "features": {

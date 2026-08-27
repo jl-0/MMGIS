@@ -31,8 +31,10 @@ capability it is showing:
 
 | Configuration | Where MMGIS comes from | Use it when |
 |---|---|---|
-| `demo` | a published image on `ghcr.io/nasa-ammos/mmgis` | you want to evaluate released MMGIS -- starts in about the time it takes to pull an image |
-| `dev` | built from the branch's `Dockerfile` | you want to see a capability that has not shipped yet -- several minutes of build, and it wants a 4-core machine |
+| **MMGIS Demo** (default) | a published image on `ghcr.io/nasa-ammos/mmgis` | you want to evaluate released MMGIS -- starts in about the time it takes to pull an image |
+| **MMGIS Dev** | built from the branch's `Dockerfile` | you want to see a capability that has not shipped yet -- several minutes of build, and it wants a 4-core machine |
+
+If you do not choose, you get **MMGIS Demo**.
 
 Nothing else is required of you. The codespace writes its own configuration,
 starts the services, waits for MMGIS to answer, and seeds a demonstration mission.
@@ -59,8 +61,8 @@ Then:
 3. Explore. Configure is fully editable -- add layers, change the look, make
    another mission. You cannot break anything that matters.
 
-If you want someone else to see your screen, share your screen. Do not make the
-port public: that turns the address into one anybody with the link can open.
+To let someone else into your running instance, see
+[Sharing it with someone else](#sharing-it-with-someone-else) below.
 
 ## What it costs, and who pays
 
@@ -107,6 +109,67 @@ with no budget set and no payment method simply stops rather than overspending.
 - [Setting your idle timeout](https://docs.github.com/en/codespaces/setting-your-user-preferences/setting-your-timeout-period-for-github-codespaces)
 - [Codespaces quickstart](https://docs.github.com/en/codespaces/quickstart), if
   none of the above is familiar
+
+## Sharing it with someone else
+
+The intended way is for them to launch their own -- it costs them nothing but a
+click, and their instance is theirs to break. Send them this page.
+
+If you have configured something worth showing and want other people in *your*
+running instance, the port has a visibility setting. In the **Ports** tab of the
+editor, right-click port 8888 and use **Port Visibility**:
+
+| Visibility | Who can reach the URL |
+|---|---|
+| **Private** (default) | only you |
+| **Private to Organization** | signed-in members of the organization that owns the repository |
+| **Public** | anyone with the link, no GitHub sign-in |
+
+Or from a terminal, with the [GitHub CLI](https://cli.github.com/):
+
+    gh codespace ports visibility 8888:public -c <codespace-name>
+
+Before you make it public, know what that does and does not expose:
+
+- **MMGIS still requires a login.** This demo runs with `AUTH=local`, so a visitor
+  needs an MMGIS account even on a public port. As the admin you can create
+  accounts for them from the Configure page. The port setting controls who reaches
+  the front door, not who gets in.
+- **It only lives while the codespace runs.** The codespace stops after 30 minutes
+  of inactivity by default, and the shared URL stops with it. This is not a way to
+  host something.
+- **It is billed to you the whole time it is running**, including while someone
+  else is looking at it.
+- **A public port is a service on the open internet**, run from your personal
+  account. Fine for a demonstration with sample data; not the place for anything
+  sensitive, and not a substitute for a real deployment.
+
+Set it back to Private the same way when you are done.
+
+## Stopping and deleting it
+
+A codespace keeps costing you something until you delete it -- compute while it
+runs, storage while it exists -- so this is worth doing rather than leaving to the
+timeouts.
+
+**Stop it** (keeps everything, costs only storage, restart later):
+
+- In the editor: Command Palette (<kbd>F1</kbd>) -> **Codespaces: Stop Current Codespace**
+- From [github.com/codespaces](https://github.com/codespaces): the **...** menu next to it -> **Stop codespace**
+- CLI: `gh codespace stop`
+
+It also stops itself after 30 minutes of inactivity, which you can
+[change in your settings](https://docs.github.com/en/codespaces/setting-your-user-preferences/setting-your-timeout-period-for-github-codespaces).
+
+**Delete it** (removes the container, the database, and anything you configured):
+
+- From [github.com/codespaces](https://github.com/codespaces): the **...** menu -> **Delete codespace**
+- CLI: `gh codespace delete`
+
+Deleting is the right end state for a demo. Nothing in the instance is meant to
+survive, and GitHub will
+[auto-delete inactive codespaces](https://docs.github.com/en/codespaces/setting-your-user-preferences/configuring-automatic-deletion-of-your-codespaces)
+eventually anyway -- but not before the storage has been billed.
 
 ## What you should not do with it
 
