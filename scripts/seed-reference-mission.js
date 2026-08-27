@@ -16,12 +16,47 @@
  */
 require("dotenv").config({ path: __dirname + "/../.env" });
 
+const fs = require("fs");
+const path = require("path");
+
 const { sequelize } = require("../API/connection");
-const Config = require("../plugins/core/backend/Config/models/config");
-const missionTemplates = require("../plugins/core/backend/Utils/missionTemplates");
+
+// This script is mounted into whichever MMGIS image the demo pins, which may be
+// older than the working tree. The plugin overhaul moved these two modules from
+// API/Backend/ to plugins/core/backend/ without changing their exports, so try
+// both rather than requiring a particular vintage of image.
+function requireEither(...relativePaths) {
+  for (const rel of relativePaths) {
+    const full = path.join(__dirname, "..", rel);
+    if (fs.existsSync(full) || fs.existsSync(`${full}.js`)) return require(full);
+  }
+  throw new Error(`None of these exist in this image: ${relativePaths.join(", ")}`);
+}
+
+const Config = requireEither(
+  "plugins/core/backend/Config/models/config",
+  "API/Backend/Config/models/config"
+);
+const missionTemplates = requireEither(
+  "plugins/core/backend/Utils/missionTemplates",
+  "API/Backend/Utils/missionTemplates"
+);
 
 async function seed(variantKey, force) {
   const variants = missionTemplates.REFERENCE_MISSION_VARIANTS;
+
+  // Images built before the variant registry landed know only the Earth mission,
+  // and their createReferenceMission takes no variant argument.
+  if (!variants) {
+    if (variantKey !== "default") {
+      throw new Error(
+        `This MMGIS build predates reference mission variants; only "default" is available (asked for "${variantKey}").`
+      );
+    }
+    return seedMission("Reference-Mission", () =>
+      missionTemplates.createReferenceMission("Reference-Mission")
+    );
+  }
 
   if (!Object.hasOwn(variants, variantKey)) {
     throw new Error(
@@ -31,7 +66,15 @@ async function seed(variantKey, force) {
     );
   }
 
-  const missionName = variants[variantKey].missionName;
+  return seedMission(variants[variantKey].missionName, () =>
+    missionTemplates.createReferenceMission(
+      variants[variantKey].missionName,
+      variantKey
+    )
+  );
+}
+
+async function seedMission(missionName, create) {
   const existing = await Config.findOne({ where: { mission: missionName } });
 
   if (existing && !force) {
@@ -39,10 +82,7 @@ async function seed(variantKey, force) {
     return;
   }
 
-  const result = await missionTemplates.createReferenceMission(
-    missionName,
-    variantKey
-  );
+  const result = await create();
 
   if (existing) {
     // Mirrors the route: replace every row for this mission rather than
