@@ -1,0 +1,43 @@
+{
+  "name": "MMGIS Dev (build from this branch)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" }
+  },
+  // Bigger than the demo configuration on purpose: this one compiles the image
+  // (two npm installs, a micromamba Python environment, and two webpack builds)
+  // instead of pulling it. That is minutes of build time and several GB of
+  // layers, and it burns the visitor's quota faster -- worth it only when the
+  // point is to show a capability that has not shipped yet.
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb",
+    "storage": "64gb"
+  },
+  "containerEnv": {
+    // Generated credentials live outside the working tree so they can never be
+    // committed or reach a Docker build context. See setup-env.sh.
+    "MMGIS_ENV_FILE": "${containerEnv:HOME}/.mmgis-codespace/.env",
+    // Which Reference Mission variant start.sh seeds. See
+    // REFERENCE_MISSION_VARIANTS in plugins/core/backend/Utils/missionTemplates.js
+    // for the keys: default (Earth), Lunar-SouthPole, Mars.
+    "MMGIS_SEED_VARIANT": "default"
+  },
+  // Prebuilds also run postCreateCommand, so nothing secret is generated there.
+  "postCreateCommand": ".devcontainer/scripts/setup-env.sh",
+  "postStartCommand": ".devcontainer/scripts/start.sh dev",
+  "forwardPorts": [8888],
+  "portsAttributes": {
+    "8888": {
+      "label": "MMGIS",
+      "onAutoForward": "openBrowserOnce",
+      "protocol": "http"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-azuretools.vscode-docker", "dbaeumer.vscode-eslint"]
+    }
+  }
+}

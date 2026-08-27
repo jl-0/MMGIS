@@ -10,6 +10,9 @@ Missions_dev
 
 # Environment and config
 .env
+# Codespaces/devcontainer scaffolding: not needed at runtime, and this keeps any
+# locally generated demo env file out of the build context.
+.devcontainer/
 
 # Git
 **/.git

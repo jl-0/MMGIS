@@ -1,0 +1,14 @@
+# Overlay for the `dev` configuration: build MMGIS from this branch's Dockerfile
+# instead of pulling a published tag. Layered on docker-compose.mmgis.yml.
+#
+# `build:` alongside `image:` means compose builds and tags locally, so the
+# GHCR tag is never pulled here.
+services:
+  mmgis:
+    image: mmgis:devcontainer
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    # A from-source build is slower to come up than a pulled image.
+    healthcheck:
+      start_period: 60s
