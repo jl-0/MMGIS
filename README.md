@@ -40,12 +40,36 @@
 
 ## Table of Contents
 
+- [Try MMGIS](#try-mmgis)
 - [Features](#features)
 - [Installation](#installation)
 - [Plugins](#plugins)
 - [Minimum Specs](#minimum-specs)
 - [License](#license-apache-20)
 - [Contacts](#contacts)
+
+## Try MMGIS
+
+Want to see it before installing anything?
+
+<div align="center">
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/jl-0/MMGIS)
+
+</div>
+
+One click gives you a complete, pre-configured MMGIS -- application, PostGIS
+database, and a demonstration mission with data in it -- running in a browser tab.
+Nothing to install, no containers to pull, and no server to stand up. Open
+`/configure` on the URL it gives you, pick an admin password, and start exploring.
+
+The codespace runs on your own GitHub account and is billed to you, not to anyone
+else; personal accounts include a monthly allowance at no cost that is far more
+than an evaluation needs. Delete it when you are finished and it is gone, database
+and all.
+
+See **[CODESPACES-DEMO.md](./CODESPACES-DEMO.md)** for how to start it, how to
+reach it, and how the billing works.
 
 ## Features
 
