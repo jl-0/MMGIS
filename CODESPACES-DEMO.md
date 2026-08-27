@@ -10,15 +10,24 @@ It is **not** a deployment: everything in it is throwaway.
 
 ## Starting it
 
-1. Go to **[github.com/codespaces/new](https://github.com/codespaces/new)**, choose
-   this repository, and pick the branch you want to see.
-2. Use **New with options...** rather than the default green button. That gives
-   you two dropdowns worth setting:
-   - **Dev container configuration** -- `demo` or `dev`, see the table below.
-   - **Machine type** -- 2-core is enough for `demo` and is the cheapest against
-     your quota.
-3. Click **Create codespace** and wait. The first launch has to pull or build
-   images, so give it a few minutes; later starts of the same codespace are quick.
+**[codespaces.new/NASA-AMMOS/MMGIS](https://codespaces.new/NASA-AMMOS/MMGIS)**
+
+That opens the codespace creation page, where two settings are worth a look
+before you create it:
+
+- **Dev container configuration** -- `demo` or `dev`, see the table below.
+- **Machine type** -- 2-core is enough for `demo` and is the cheapest against your
+  monthly allowance.
+
+Then **Create codespace** and wait. The first launch has to pull or build images,
+so give it a few minutes; later starts of the same codespace are quick.
+
+To skip the options and take the defaults, add `?quickstart=1`. To demo a specific
+capability, add `?ref=<branch>` -- a demo is a branch, so it stays in step with the
+capability it is showing:
+
+    https://codespaces.new/NASA-AMMOS/MMGIS?quickstart=1
+    https://codespaces.new/NASA-AMMOS/MMGIS?ref=some-feature-branch
 
 | Configuration | Where MMGIS comes from | Use it when |
 |---|---|---|
