@@ -9,12 +9,18 @@ file is for people maintaining these configurations.
 
 ## Two configurations
 
-Pick one from the Codespaces creation menu.
-
-| Configuration | MMGIS comes from | Use when |
+| File | Name in the picker | MMGIS comes from |
 |---|---|---|
-| `demo` | pinned image on `ghcr.io/nasa-ammos/mmgis` | evaluating released capability -- starts in the time it takes to pull |
-| `dev` | built from this branch's `Dockerfile` | demonstrating a capability *before* it ships -- minutes of build, bigger machine |
+| `devcontainer.json` | MMGIS Demo (published image) | pinned image on `ghcr.io/nasa-ammos/mmgis` |
+| `dev/devcontainer.json` | MMGIS Dev (build from this branch) | built from this branch's `Dockerfile` |
+
+**The demo configuration has to stay at `.devcontainer/devcontainer.json`, not in a
+named subfolder.** Codespaces only offers the "Dev container configuration"
+dropdown on the options page; the badge link, the green *Create codespace* button
+and `?quickstart=1` all skip it. With only named configs, those paths fall back to
+the default universal image and MMGIS never starts -- a codespace that greets you
+with "You are on our default image" is this failure. A root config is the default
+for those paths, and named configs alongside it still appear in the dropdown.
 
 ## What happens on launch
 
