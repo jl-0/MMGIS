@@ -18,9 +18,6 @@
     "storage": "32gb"
   },
   "containerEnv": {
-    // Generated credentials live outside the working tree so they can never be
-    // committed or reach a Docker build context. See setup-env.sh.
-    "MMGIS_ENV_FILE": "${containerEnv:HOME}/.mmgis-codespace/.env",
     // Pin a tag here. `latest` is the last release, `development` tracks the
     // development branch. Both are multi-arch on ghcr.io/nasa-ammos/mmgis.
     "MMGIS_IMAGE": "ghcr.io/nasa-ammos/mmgis:latest",

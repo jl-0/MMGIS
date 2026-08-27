@@ -16,9 +16,6 @@
     "storage": "64gb"
   },
   "containerEnv": {
-    // Generated credentials live outside the working tree so they can never be
-    // committed or reach a Docker build context. See setup-env.sh.
-    "MMGIS_ENV_FILE": "${containerEnv:HOME}/.mmgis-codespace/.env",
     // Which Reference Mission variant start.sh seeds. See
     // REFERENCE_MISSION_VARIANTS in plugins/core/backend/Utils/missionTemplates.js
     // for the keys: default (Earth), Lunar-SouthPole, Mars.
