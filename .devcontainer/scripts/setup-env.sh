@@ -65,14 +65,26 @@ NODE_ENV=production
 # plain HTTP to this port. MMGIS must not try to serve HTTPS itself.
 HTTPS=false
 
-# Anyone without credentials is blocked. With an empty users table, /configure
-# renders its SETUP form so the first visitor creates the admin account and
-# picks their own password.
-AUTH=local
+# Who can view the map. This is the one setting to change to open the demo up:
+#   required  visitors must log in (default; safest on a public port)
+#   optional  anyone can view; visitors may sign up and log in
+#   public    anyone can view; only admins log in, at /configure
+# /configure always needs an admin login, whatever this says.
+#
+# MMGIS ignores this name. start.sh translates it on every start into what the
+# image understands: SITE_ACCESS + AUTH_PROVIDERS for builds after the auth
+# refactor, or the legacy AUTH (local / none / off) for older ones, such as the
+# last release. Newer builds refuse to start while AUTH is set, so neither of
+# those is written here directly. Run start.sh again after changing it.
+MMGIS_SITE_ACCESS=required
 AUTH_LOCAL_ALLOW_SIGNUP=false
 
 # Filled in on first start by start.sh.
 SECRET=
+# One-time code for creating the first admin account on /configure (builds after
+# the auth refactor). Generated on first start and printed by start.sh. It stops
+# mattering once an account exists.
+SETUP_CODE=
 
 VERBOSE_LOGGING=false
 HIDE_CONFIG=false

@@ -18,9 +18,17 @@
     "storage": "32gb"
   },
   "containerEnv": {
-    // Pin a tag here. `latest` is the last release, `development` tracks the
-    // development branch. Both are multi-arch on ghcr.io/nasa-ammos/mmgis.
-    "MMGIS_IMAGE": "ghcr.io/nasa-ammos/mmgis:latest",
+    // Pin a tag here, and move it when the branch is rebased. This is the
+    // dated `development` build of the upstream commit this branch sits on, so
+    // the published image matches the scripts and docs next to it.
+    //
+    // Do not use `latest`: on ghcr.io it is still MMGIS 4.2.34, which predates
+    // the Reference Mission and cannot seed it. Other useful tags: `5.2.24`
+    // (last tagged release, legacy AUTH, works with these scripts) and
+    // `development` (moves with upstream, untested here until you try it).
+    // List them with:
+    //   gh api /orgs/NASA-AMMOS/packages/container/mmgis/versions --jq '.[].metadata.container.tags[]'
+    "MMGIS_IMAGE": "ghcr.io/nasa-ammos/mmgis:5.5.1-20261105-63003cd",
     // Which Reference Mission variant start.sh seeds. See
     // REFERENCE_MISSION_VARIANTS in plugins/core/backend/Utils/missionTemplates.js
     // for the keys: default (Earth), Lunar-SouthPole, Mars.

@@ -57,6 +57,21 @@ if grep -q '^SECRET=$' "$MMGIS_ENV_FILE"; then
   replace_in_env "s|^SECRET=$|SECRET=$(openssl rand -hex 64)|"
   echo "[start] generated SECRET"
 fi
+# An env file from before SETUP_CODE existed has no line to fill in.
+grep -q '^SETUP_CODE=' "$MMGIS_ENV_FILE" || echo 'SETUP_CODE=' >> "$MMGIS_ENV_FILE"
+if grep -q '^SETUP_CODE=$' "$MMGIS_ENV_FILE"; then
+  # Same shape as the code MMGIS generates itself (API/permissions/setupCode.js),
+  # but fixed for the life of the codespace so it can be printed below rather
+  # than fished out of a log that changes on every restart.
+  SETUP_ALPHABET=23456789ABCDEFGHJKMNPQRSTUVWXYZ
+  code=""
+  for i in $(seq 1 16); do
+    code+="${SETUP_ALPHABET:$(( $(od -An -N2 -tu2 /dev/urandom) % ${#SETUP_ALPHABET} )):1}"
+    if [ $((i % 4)) -eq 0 ] && [ "$i" -lt 16 ]; then code+="-"; fi
+  done
+  replace_in_env "s|^SETUP_CODE=$|SETUP_CODE=${code}|"
+  echo "[start] generated SETUP_CODE"
+fi
 if grep -q '^DB_PASS=GENERATED_ON_FIRST_START$' "$MMGIS_ENV_FILE"; then
   # Fresh credentials against a database volume that some earlier credential
   # initialized would fail authentication. They share a lifecycle ($HOME and the
@@ -71,6 +86,85 @@ if grep -q '^DB_PASS=GENERATED_ON_FIRST_START$' "$MMGIS_ENV_FILE"; then
   replace_in_env "s|^DB_PASS=GENERATED_ON_FIRST_START$|DB_PASS=$(openssl rand -hex 24)|"
   echo "[start] generated DB_PASS"
 fi
+
+# --- Site access -------------------------------------------------------------
+# The env file carries one demo-level setting, MMGIS_SITE_ACCESS, and this turns
+# it into what the MMGIS build in use understands. The auth refactor replaced
+# AUTH with SITE_ACCESS + AUTH_PROVIDERS, and builds after it refuse to start
+# while AUTH is set -- but the last release (`latest`) still predates it, and a
+# fork may pin either. Rewritten on every start, so changing MMGIS_SITE_ACCESS
+# and running this script again is all it takes.
+
+# Env files written before MMGIS_SITE_ACCESS existed say AUTH=... instead.
+if ! grep -q '^MMGIS_SITE_ACCESS=' "$MMGIS_ENV_FILE"; then
+  case "$(sed -n 's/^AUTH=//p' "$MMGIS_ENV_FILE" | tail -1)" in
+    off)  legacy_access=public ;;
+    none) legacy_access=optional ;;
+    *)    legacy_access=required ;;
+  esac
+  echo "MMGIS_SITE_ACCESS=${legacy_access}" >> "$MMGIS_ENV_FILE"
+fi
+
+SITE_ACCESS_VALUE="$(sed -n 's/^MMGIS_SITE_ACCESS=//p' "$MMGIS_ENV_FILE" | tail -1)"
+case "$SITE_ACCESS_VALUE" in
+  required) LEGACY_AUTH=local ;;
+  optional) LEGACY_AUTH=none ;;
+  public)   LEGACY_AUTH=off ;;
+  *)
+    echo "[start] MMGIS_SITE_ACCESS=${SITE_ACCESS_VALUE} in $MMGIS_ENV_FILE is not one of: required, optional, public"
+    exit 1
+    ;;
+esac
+
+MMGIS_IMAGE="${MMGIS_IMAGE:-ghcr.io/nasa-ammos/mmgis:5.5.1-20261105-63003cd}"
+if [ "$FLAVOR" = "dev" ]; then
+  # Built from this working tree, so the tree answers the question.
+  if [ -d plugins/core/auth ]; then HAS_SITE_ACCESS=true; else HAS_SITE_ACCESS=false; fi
+else
+  # Pulled outside the test so a failed pull stops here (set -e) instead of
+  # being mistaken for an image without the refactor.
+  docker image inspect "$MMGIS_IMAGE" >/dev/null 2>&1 || docker pull -q "$MMGIS_IMAGE" >/dev/null
+  if docker run --rm --entrypoint test "$MMGIS_IMAGE" -d /usr/src/app/plugins/core/auth; then
+    HAS_SITE_ACCESS=true
+  else
+    HAS_SITE_ACCESS=false
+  fi
+fi
+
+# Strip what an earlier run wrote (including its marker comment), then append.
+MARKER="# --- written by start.sh from MMGIS_SITE_ACCESS; edit that, not these ---"
+tmp="$(mktemp)"
+grep -v -E -e '^(AUTH|SITE_ACCESS|AUTH_PROVIDERS)=' -e "^${MARKER}\$" "$MMGIS_ENV_FILE" > "$tmp" || true
+{
+  echo "$MARKER"
+  if [ "$HAS_SITE_ACCESS" = true ]; then
+    echo "SITE_ACCESS=${SITE_ACCESS_VALUE}"
+    echo 'AUTH_PROVIDERS=["local"]'
+  else
+    echo "AUTH=${LEGACY_AUTH}"
+  fi
+} >> "$tmp"
+mv "$tmp" "$MMGIS_ENV_FILE"
+chmod 600 "$MMGIS_ENV_FILE"
+echo "[start] site access: ${SITE_ACCESS_VALUE} ($( [ "$HAS_SITE_ACCESS" = true ] && echo "SITE_ACCESS" || echo "legacy AUTH=${LEGACY_AUTH}" ))"
+
+# --- Container user ----------------------------------------------------------
+# Newer images run as an unprivileged uid that cannot write ../Missions, which
+# belongs to whoever owns this checkout; run those as that owner instead. Older
+# releases run as root, which can write anything -- and may not cope with
+# another uid -- so they keep the user they were built with.
+mkdir -p Missions
+MISSIONS_OWNER="$(stat -c '%u:%g' Missions 2>/dev/null || stat -f '%u:%g' Missions)"
+if [ "$FLAVOR" = "dev" ]; then
+  IMAGE_USER="$(sed -n 's/^USER[[:space:]]\{1,\}//p' Dockerfile | tail -1)"
+else
+  IMAGE_USER="$(docker image inspect --format '{{.Config.User}}' "$MMGIS_IMAGE")"
+fi
+case "${IMAGE_USER:-root}" in
+  root|0|0:*|root:*) export MMGIS_USER="0:0" ;;
+  *)                 export MMGIS_USER="$MISSIONS_OWNER" ;;
+esac
+echo "[start] mmgis container user: ${MMGIS_USER} (image user: ${IMAGE_USER:-root})"
 
 if [ "$FLAVOR" = "dev" ]; then
   echo "[start] building MMGIS from this branch (first build takes a while)"
@@ -110,14 +204,31 @@ if [ -n "${CODESPACE_NAME:-}" ]; then
   URL="https://${CODESPACE_NAME}-8888.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}"
 fi
 
+SETUP_LINE="      (no setup code: this image predates it -- see CODESPACES-DEMO.md before"
+SETUP_LINE+=$'\n'"       making the port public, since the SETUP form is open until used)"
+if [ "$HAS_SITE_ACCESS" = true ]; then
+  SETUP_LINE="      setup code: $(sed -n 's/^SETUP_CODE=//p' "$MMGIS_ENV_FILE" | tail -1)   (only asked for while no account exists)"
+fi
+
+ACCESS_NOTE=""
+if [ "$HAS_SITE_ACCESS" = true ] && [ "$SITE_ACCESS_VALUE" != required ]; then
+  ACCESS_NOTE=$'\n'"  Guests only see missions granted to Everyone: Configure -> Users & Access"
+  ACCESS_NOTE+=$'\n'"  -> Site-wide -> \"Everyone (including guests)\" -> All missions."
+fi
+
 cat <<MSG
 
   MMGIS is running.
 
     Open  ${URL}/configure  and create the admin account.
+${SETUP_LINE}
     Then  ${URL}  for the map.
+
+  Site access: ${SITE_ACCESS_VALUE}. Change MMGIS_SITE_ACCESS in
+  ${MMGIS_ENV_FILE} and rerun .devcontainer/scripts/start.sh to open it up.${ACCESS_NOTE}
 
   The forwarded port is private to you; GitHub handles the HTTPS.
   Everything in here is throwaway: demo credentials, demo data, no backups.
+  Sharing it or making it public: see CODESPACES-DEMO.md.
 
 MSG

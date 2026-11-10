@@ -23,7 +23,7 @@
 # POSTGRES_USER / POSTGRES_PASS instead of editing the sample's literals.
 services:
   mmgis:
-    image: ${MMGIS_IMAGE:-ghcr.io/nasa-ammos/mmgis:latest}
+    image: ${MMGIS_IMAGE:-ghcr.io/nasa-ammos/mmgis:5.5.1-20261105-63003cd}
     depends_on:
       db:
         condition: service_healthy
@@ -39,6 +39,15 @@ services:
       start_period: 20s
       timeout: 8s
     restart: on-failure
+    # Images since #1120 run as uid 10001, which cannot write the bind-mounted
+    # ../Missions owned by the codespace user. start.sh sets MMGIS_USER to that
+    # owner's numeric uid:gid for such images, and to root for older releases,
+    # which were built to run as root. Root is also the fallback when compose is
+    # run by hand, since it can always write the mount. group_add 0 lets an
+    # arbitrary uid write the group-root parts of the image, as the Docker docs
+    # for #1120 describe.
+    user: ${MMGIS_USER:-0:0}
+    group_add: ["0"]
     volumes:
       - ../Missions:/usr/src/app/Missions
       # Mounted rather than assumed present: the published image predates this

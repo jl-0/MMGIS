@@ -61,7 +61,8 @@ Want to see it before installing anything?
 One click gives you a complete, pre-configured MMGIS -- application, PostGIS
 database, and a demonstration mission with data in it -- running in a browser tab.
 Nothing to install, no containers to pull, and no server to stand up. Open
-`/configure` on the URL it gives you, pick an admin password, and start exploring.
+`/configure` on the URL it gives you, enter the setup code it prints, pick an admin
+password, and start exploring the Reference Mission.
 
 The codespace runs on your own GitHub account and is billed to you, not to anyone
 else; personal accounts include a monthly allowance at no cost that is far more
@@ -69,7 +70,9 @@ than an evaluation needs. Delete it when you are finished and it is gone, databa
 and all.
 
 See **[CODESPACES-DEMO.md](./CODESPACES-DEMO.md)** for how to start it, how to
-reach it, and how the billing works.
+reach it, how the billing works, and how to
+[make it public](./CODESPACES-DEMO.md#making-it-public) -- changing passwords
+included -- if you want to show it to others.
 
 ## Features
 

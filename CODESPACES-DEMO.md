@@ -54,10 +54,14 @@ any time on the **Ports** tab in the editor.
 Then:
 
 1. Open **`/configure`** on that URL. Because the instance has no accounts yet,
-   the admin page comes up in **SETUP** mode -- choose a username and password and
-   you are the site administrator. (Passwords need 8+ characters with an uppercase
-   letter, a lowercase letter, a number, and a symbol.)
-2. Open the root URL for the map. The seeded Reference Mission is already there.
+   the admin page comes up in **SETUP** mode. Enter the **setup code** printed in
+   the terminal when MMGIS started (`setup code: XXXX-XXXX-XXXX-XXXX`), then
+   choose a username and password, and you are the site administrator.
+   (Passwords need 8+ characters with an uppercase letter, a lowercase letter, a
+   number, and a symbol.) Lost the terminal output? The code is the `SETUP_CODE=`
+   line of `~/.mmgis-codespace/.env`.
+2. Open the root URL for the map. The seeded **Reference Mission** -- the Earth
+   demo with 20+ layers and most of the tools configured -- is already there.
 3. Explore. Configure is fully editable -- add layers, change the look, make
    another mission. You cannot break anything that matters.
 
@@ -116,8 +120,89 @@ The intended way is for them to launch their own -- it costs them nothing but a
 click, and their instance is theirs to break. Send them this page.
 
 If you have configured something worth showing and want other people in *your*
-running instance, the port has a visibility setting. In the **Ports** tab of the
-editor, right-click port 8888 and use **Port Visibility**:
+running instance, read on.
+
+## Making it public
+
+Two separate gates decide who sees your instance, and you will usually change
+both:
+
+| Gate | Controls | Default here |
+|---|---|---|
+| **Port visibility** (GitHub) | who can reach the URL at all | Private: only you, signed in to GitHub |
+| **Site access** (MMGIS) | who must log in once they reach it | `required`: everyone logs in |
+
+Work through the steps in order. The first one matters most: claiming the admin
+account before anyone else can reach the page.
+
+### 1. Create the admin account first
+
+Do this while the port is still private (see [Accessing it](#accessing-it)). Until
+an account exists, `/configure` offers the SETUP form; the setup code is what stops
+a stranger from claiming it, and creating your account retires both.
+
+Use a password you do not use anywhere else. The instance is throwaway, but its
+password will be typed into a URL anyone can reach.
+
+### 2. Change your password (and other people's)
+
+Logged in to `/configure`:
+
+1. Open **Users & Access** -> **People** and select the account.
+2. Choose **Reset password**, confirm the username, and pick how long the link
+   should last.
+3. Open the generated link (`.../resetPassword?t=...`) and set the new password.
+   The old password stops working once you do.
+
+To reset someone else's password, follow the same steps for their account and send
+them the link privately. The link is single-use, and it signs in as that account,
+so treat it like a password.
+
+To give someone their own login, use **People** -> **New user**. Accounts can
+only be created by an admin unless you turn on self sign-up
+(`AUTH_LOCAL_ALLOW_SIGNUP=true`, see step 3).
+
+The only other credentials in the codespace (`DB_PASS`, `SECRET`) are generated
+per codespace and never leave its private container network -- the database port
+is not forwarded -- so there is nothing to change there.
+
+### 3. Choose who has to log in
+
+This is the `MMGIS_SITE_ACCESS` line of `~/.mmgis-codespace/.env`:
+
+| Value | Visitors | Good for |
+|---|---|---|
+| `required` (default) | must log in to see anything | sharing with specific people: give each an account |
+| `optional` | can browse without logging in, and may log in | a public demo where some people also save Draw files |
+| `public` | browse without logging in; no end-user logins at all | a read-only public demo |
+
+`/configure` always needs an admin login, whichever you choose. To change it:
+
+    sed -i 's/^MMGIS_SITE_ACCESS=.*/MMGIS_SITE_ACCESS=public/' ~/.mmgis-codespace/.env
+    .devcontainer/scripts/start.sh
+
+Rerunning `start.sh` restarts MMGIS with the new setting and keeps your data. Edit
+`MMGIS_SITE_ACCESS` only, not the `SITE_ACCESS` / `AUTH` lines below it, which
+`start.sh` rewrites. To let visitors make their own accounts on a `required`
+site, change `AUTH_LOCAL_ALLOW_SIGNUP` to `true` in the same file before rerunning.
+
+### 4. Let guests see the missions
+
+For `optional` or `public`, opening the site is not enough on its own: each
+mission is visible only to the people it has been granted to. The demo starts as
+`required`, so guests have no grant yet and would see no missions.
+
+In `/configure` open **Users & Access** -> **Site-wide**, find **Everyone
+(including guests)**, choose **All missions** (or just the ones to show), and
+save. The **People** and **Missions** tabs show who can see what.
+
+(Older MMGIS images that predate this page show every mission once the site is
+public, so skip this step for them.)
+
+### 5. Make the port public
+
+In the **Ports** tab of the editor, right-click port 8888 and use **Port
+Visibility**:
 
 | Visibility | Who can reach the URL |
 |---|---|
@@ -127,24 +212,33 @@ editor, right-click port 8888 and use **Port Visibility**:
 
 Or from a terminal, with the [GitHub CLI](https://cli.github.com/):
 
-    gh codespace ports visibility 8888:public -c <codespace-name>
+    gh codespace ports visibility 8888:public -c "$CODESPACE_NAME"
 
-Before you make it public, know what that does and does not expose:
+Then send people the same `https://<codespace-name>-8888.app.github.dev` URL you
+have been using. Check it from a private browser window first: you should see the
+map (or the MMGIS login page, if site access is `required`), not a GitHub sign-in.
 
-- **MMGIS still requires a login.** This demo runs with `AUTH=local`, so a visitor
-  needs an MMGIS account even on a public port. As the admin you can create
-  accounts for them from the Configure page. The port setting controls who reaches
-  the front door, not who gets in.
+### Before you do: what "public" means here
+
 - **It only lives while the codespace runs.** The codespace stops after 30 minutes
-  of inactivity by default, and the shared URL stops with it. This is not a way to
-  host something.
+  of inactivity by default -- visitors do not count as activity -- and the URL
+  stops with it. This is not a way to host something. You can raise the
+  [idle timeout](https://docs.github.com/en/codespaces/setting-your-user-preferences/setting-your-timeout-period-for-github-codespaces)
+  for the length of a demo.
 - **It is billed to you the whole time it is running**, including while someone
   else is looking at it.
 - **A public port is a service on the open internet**, run from your personal
-  account. Fine for a demonstration with sample data; not the place for anything
-  sensitive, and not a substitute for a real deployment.
+  account. With `public` or `optional` site access, anyone with the link can read
+  every mission you granted to Everyone. Fine for the Reference Mission and
+  other sample data; not the place for anything sensitive, and not a substitute
+  for a real deployment.
 
-Set it back to Private the same way when you are done.
+### Closing it again
+
+Reverse the steps: set the port back to **Private** (`gh codespace ports
+visibility 8888:private -c "$CODESPACE_NAME"`), set `MMGIS_SITE_ACCESS=required`
+and rerun `start.sh`, and remove the Everyone grant if you added one. Or simply
+stop or delete the codespace.
 
 ## Stopping and deleting it
 
