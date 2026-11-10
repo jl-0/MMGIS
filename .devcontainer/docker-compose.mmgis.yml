@@ -23,7 +23,7 @@
 # POSTGRES_USER / POSTGRES_PASS instead of editing the sample's literals.
 services:
   mmgis:
-    image: ${MMGIS_IMAGE:-ghcr.io/nasa-ammos/mmgis:5.5.1-20261105-63003cd}
+    image: ${MMGIS_IMAGE:-ghcr.io/nasa-ammos/mmgis:development}
     depends_on:
       db:
         condition: service_healthy

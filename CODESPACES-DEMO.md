@@ -31,13 +31,28 @@ capability it is showing:
 
 | Configuration | Where MMGIS comes from | Use it when |
 |---|---|---|
-| **MMGIS Demo** (default) | a published image on `ghcr.io/nasa-ammos/mmgis` | you want to evaluate released MMGIS -- starts in about the time it takes to pull an image |
+| **MMGIS Demo** (default) | the newest `development` build on `ghcr.io/nasa-ammos/mmgis` | you want to evaluate current MMGIS and the newest Reference Mission -- starts in about the time it takes to pull an image |
 | **MMGIS Dev** | built from the branch's `Dockerfile` | you want to see a capability that has not shipped yet -- several minutes of build, and it wants a 4-core machine |
 
 If you do not choose, you get **MMGIS Demo**.
 
 Nothing else is required of you. The codespace writes its own configuration,
 starts the services, waits for MMGIS to answer, and seeds a demonstration mission.
+
+### Staying on the newest version
+
+The demo runs the `development` build of MMGIS, which upstream republishes as
+changes merge. Every start of the codespace checks for a newer build and, if
+there is one, switches to it and replaces the Reference Mission with the newer
+one. So to update an existing codespace, stop and start it, or run:
+
+    .devcontainer/scripts/start.sh
+
+Your accounts, other missions and settings are kept. Edits you made to the
+Reference Mission itself are replaced on an update; to keep them, set
+`"MMGIS_SEED_REFRESH": "never"` in `.devcontainer/devcontainer.json` (in your
+fork) before creating the codespace. A brand-new codespace always starts on the
+newest build.
 
 ## Accessing it
 
@@ -253,7 +268,9 @@ timeouts.
 - CLI: `gh codespace stop`
 
 Stopping costs nothing and ends the compute charge immediately; starting again is
-quick, because the image is already pulled and your data is still there.
+quick, because the image is already pulled and your data is still there. (If a
+newer MMGIS build has been published meanwhile, starting downloads it -- see
+[Staying on the newest version](#staying-on-the-newest-version).)
 
 It also stops itself after 30 minutes of inactivity, which you can
 [change in your settings](https://docs.github.com/en/codespaces/setting-your-user-preferences/setting-your-timeout-period-for-github-codespaces).

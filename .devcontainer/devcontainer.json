@@ -18,21 +18,28 @@
     "storage": "32gb"
   },
   "containerEnv": {
-    // Pin a tag here, and move it when the branch is rebased. This is the
-    // dated `development` build of the upstream commit this branch sits on, so
-    // the published image matches the scripts and docs next to it.
+    // `development` is rebuilt from upstream's development branch on every
+    // merge, so this runs the newest MMGIS and the newest Reference Mission.
+    // start.sh pulls it on every start, so restarting a codespace is enough
+    // to pick up a new build.
     //
-    // Do not use `latest`: on ghcr.io it is still MMGIS 4.2.34, which predates
-    // the Reference Mission and cannot seed it. Other useful tags: `5.2.24`
-    // (last tagged release, legacy AUTH, works with these scripts) and
-    // `development` (moves with upstream, untested here until you try it).
-    // List them with:
+    // To freeze the demo instead, pin a dated build of the same branch, e.g.
+    // `5.5.1-20261105-63003cd` (version-date-commit). Do not use `latest`: on
+    // ghcr.io it is still MMGIS 4.2.34, which predates the Reference Mission
+    // and cannot seed it. `5.2.24` (last tagged release, legacy AUTH) also
+    // works with these scripts. List tags with:
     //   gh api /orgs/NASA-AMMOS/packages/container/mmgis/versions --jq '.[].metadata.container.tags[]'
-    "MMGIS_IMAGE": "ghcr.io/nasa-ammos/mmgis:5.5.1-20261105-63003cd",
+    "MMGIS_IMAGE": "ghcr.io/nasa-ammos/mmgis:development",
     // Which Reference Mission variant start.sh seeds. See
     // REFERENCE_MISSION_VARIANTS in plugins/core/backend/Utils/missionTemplates.js
     // for the keys: default (Earth), Lunar-SouthPole, Mars.
-    "MMGIS_SEED_VARIANT": "default"
+    "MMGIS_SEED_VARIANT": "default",
+    // When the MMGIS image changes (a newer `development` build, a new pin),
+    // replace the seeded Reference Mission with the new image's blueprint so
+    // the demo shows the newest one. This discards Configure edits made to
+    // that one mission; other missions are untouched. Set to `never` to keep
+    // the mission as it is once seeded.
+    "MMGIS_SEED_REFRESH": "on-image-change"
   },
   // NOTE: Codespaces prebuilds also run postCreateCommand, so anything secret
   // generated here would be baked into the prebuild and shared by every

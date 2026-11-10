@@ -11,7 +11,7 @@ file is for people maintaining these configurations.
 
 | File | Name in the picker | MMGIS comes from |
 |---|---|---|
-| `devcontainer.json` | MMGIS Demo (published image) | pinned image on `ghcr.io/nasa-ammos/mmgis` |
+| `devcontainer.json` | MMGIS Demo (published image) | `ghcr.io/nasa-ammos/mmgis:development`, re-pulled on every start |
 | `dev/devcontainer.json` | MMGIS Dev (build from this branch) | built from this branch's `Dockerfile` |
 
 **The demo configuration has to stay at `.devcontainer/devcontainer.json`, not in a
@@ -152,7 +152,17 @@ The published image may predate the script, so the compose file mounts it into
 the container read-only.
 
 Set `MMGIS_SEED_VARIANT` in `devcontainer.json` to pick a variant: `default`
-(Earth, 20+ layers), `Lunar-SouthPole`, or `Mars`. To reseed by hand:
+(Earth, 20+ layers), `Lunar-SouthPole`, or `Mars`.
+
+The seed script leaves an existing mission alone, which on its own would pin a
+codespace to the Reference Mission of whichever image first seeded it. So
+`start.sh` records the ID of the image it seeded from in
+`~/.mmgis-codespace/seeded-image-<variant>` and, when the running image differs,
+reseeds with `--force`: the mission folder is recopied from the new image's
+blueprint and its configuration replaced. With `MMGIS_SEED_REFRESH=never` it
+seeds once and never again. Either way, only that one mission is touched.
+
+To reseed by hand:
 
     export MMGIS_ENV_FILE="$HOME/.mmgis-codespace/.env"
     docker compose -p mmgis -f .devcontainer/docker-compose.mmgis.yml \

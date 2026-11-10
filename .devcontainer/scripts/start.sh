@@ -116,14 +116,21 @@ case "$SITE_ACCESS_VALUE" in
     ;;
 esac
 
-MMGIS_IMAGE="${MMGIS_IMAGE:-ghcr.io/nasa-ammos/mmgis:5.5.1-20261105-63003cd}"
+MMGIS_IMAGE="${MMGIS_IMAGE:-ghcr.io/nasa-ammos/mmgis:development}"
 if [ "$FLAVOR" = "dev" ]; then
   # Built from this working tree, so the tree answers the question.
   if [ -d plugins/core/auth ]; then HAS_SITE_ACCESS=true; else HAS_SITE_ACCESS=false; fi
 else
-  # Pulled outside the test so a failed pull stops here (set -e) instead of
-  # being mistaken for an image without the refactor.
-  docker image inspect "$MMGIS_IMAGE" >/dev/null 2>&1 || docker pull -q "$MMGIS_IMAGE" >/dev/null
+  # Pulled on every start: with a moving tag such as `development`, that is
+  # what brings a restarted codespace up to the newest build. A pull of an
+  # unchanged tag only checks the digest. If the registry cannot be reached,
+  # carry on with the copy already here, if there is one; otherwise stop
+  # (set -e) rather than mistake a missing image for one without the refactor.
+  echo "[start] pulling ${MMGIS_IMAGE}"
+  if ! docker pull -q "$MMGIS_IMAGE" >/dev/null; then
+    docker image inspect "$MMGIS_IMAGE" >/dev/null 2>&1 || exit 1
+    echo "[start] pull failed; using the copy of ${MMGIS_IMAGE} already here"
+  fi
   if docker run --rm --entrypoint test "$MMGIS_IMAGE" -d /usr/src/app/plugins/core/auth; then
     HAS_SITE_ACCESS=true
   else
@@ -194,10 +201,28 @@ fi
 
 # Seeded through the application layer rather than the Configure API, which
 # would need an admin account and so would consume the SETUP screen below.
+#
+# The seed script leaves an existing mission alone, so on its own a codespace
+# would keep showing the Reference Mission from whichever image first seeded
+# it. Record the image ID the mission came from, next to the env file (same
+# lifecycle as the database), and reseed with --force when it changes.
+SEED_REFRESH="${MMGIS_SEED_REFRESH:-on-image-change}"
+SEED_STAMP="$(dirname "$MMGIS_ENV_FILE")/seeded-image-${SEED_VARIANT}"
+RUNNING_IMAGE="$(docker inspect --format '{{.Image}}' "$(docker compose "${COMPOSE_ARGS[@]}" ps -q mmgis)")"
+SEED_ARGS=("$SEED_VARIANT")
+if [ "$SEED_REFRESH" = "on-image-change" ] && [ -f "$SEED_STAMP" ] &&
+  [ "$(cat "$SEED_STAMP")" != "$RUNNING_IMAGE" ]; then
+  echo "[start] MMGIS image changed since the Reference Mission was seeded; refreshing it"
+  echo "[start] (set MMGIS_SEED_REFRESH=never to keep Configure edits to it)"
+  SEED_ARGS+=(--force)
+fi
 echo "[start] seeding Reference Mission (${SEED_VARIANT})"
-docker compose "${COMPOSE_ARGS[@]}" exec -T mmgis \
-  node scripts/seed-reference-mission.js "$SEED_VARIANT" ||
+if docker compose "${COMPOSE_ARGS[@]}" exec -T mmgis \
+  node scripts/seed-reference-mission.js "${SEED_ARGS[@]}"; then
+  printf '%s\n' "$RUNNING_IMAGE" > "$SEED_STAMP"
+else
   echo "[start] seeding failed -- the Configure page can still make one by hand"
+fi
 
 URL="http://localhost:8888"
 if [ -n "${CODESPACE_NAME:-}" ]; then
