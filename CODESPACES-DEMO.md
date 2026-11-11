@@ -117,7 +117,8 @@ what the `dev` configuration asks for -- burns it twice as fast again.
 Two habits keep the meter low:
 
 - **Stop the codespace when you step away.** It also stops itself after an idle
-  timeout, which you can shorten. Stopped codespaces cost no compute, only storage.
+  timeout ([details](#when-it-shuts-itself-down)), which you can shorten. Stopped
+  codespaces cost no compute, only storage.
 - **Delete it when you are done.** Storage is billed while it exists, whether or
   not it is running.
 
@@ -248,10 +249,10 @@ map (or the MMGIS login page, if site access is `required`), not a GitHub sign-i
 ### Before you do: what "public" means here
 
 - **It only lives while the codespace runs.** The codespace stops after 30 minutes
-  of inactivity by default -- visitors do not count as activity -- and the URL
-  stops with it. This is not a way to host something. You can raise the
-  [idle timeout](https://docs.github.com/en/codespaces/setting-your-user-preferences/setting-your-timeout-period-for-github-codespaces)
-  for the length of a demo.
+  without you using it -- visitors do not count -- and after 12 hours regardless,
+  and the URL stops with it. This is not a way to host something. To keep it up
+  for the length of a demo, see
+  [When it shuts itself down](#when-it-shuts-itself-down).
 - **It is billed to you the whole time it is running**, including while someone
   else is looking at it.
 - **A public port is a service on the open internet**, run from your personal
@@ -266,6 +267,63 @@ Reverse the steps: set the port back to **Private** (`gh codespace ports
 visibility 8888:private -c "$CODESPACE_NAME"`), set `MMGIS_SITE_ACCESS=required`
 and rerun `start.sh`, and remove the Everyone grant if you added one. Or simply
 stop or delete the codespace.
+
+## When it shuts itself down
+
+A codespace is a temporary development workspace that you pay for by the hour, not
+a hosted server, and GitHub stops it on its own so a forgotten one does not keep
+billing you. Two limits apply:
+
+- **The idle timeout: 30 minutes by default.** The clock is reset only by signs
+  that *you* are there: typing or using the mouse in the editor, and input or
+  output in one of its terminals. It is **not** reset by MMGIS running -- it runs
+  in the background and prints nothing while idle -- or by people visiting the
+  site, or by a browser tab left open but untouched. Closing the tab does not stop
+  the codespace either; it keeps running (and billing) until the timeout fires.
+- **A 12-hour maximum.** Every codespace is stopped 12 hours after it started,
+  however active it is. Nothing extends this.
+
+**Changing the idle timeout.** You can pick 5 to 240 minutes, but only for
+codespaces you create *after* changing it -- a running codespace keeps the
+timeout it was created with, and there is no per-configuration setting:
+
+- For all new codespaces: github.com -> your profile picture -> **Settings** ->
+  **Codespaces** -> **Default idle timeout**.
+- For one new codespace: `gh codespace create -R <owner>/MMGIS --idle-timeout 120m`.
+
+An organization can set a lower maximum for its repositories, which then wins.
+
+**Keeping it up for a demo.** Because terminal output counts as activity, a loop
+that prints once a minute keeps a codespace running -- up to the 12-hour limit --
+including one that is already running. In a terminal in the codespace's editor
+(keep that tab open), either for a number of minutes:
+
+    for i in $(seq 120); do date; sleep 60; done
+
+or until a time of day (codespaces run on UTC, so give your time zone):
+
+    zone=America/Los_Angeles
+    end=$(TZ=$zone date -d '17:00' +%s)
+    echo "Keeping it up until $(TZ=$zone date -d @$end)"
+    while [ "$(date +%s)" -lt "$end" ]; do date; sleep 60; done
+
+Check the time it prints before walking away: a misspelled zone name is
+silently treated as UTC. If that time has already passed today, the loop ends
+at once -- use `'tomorrow 17:00'`.
+
+Either one stops on its own, after which the normal idle timeout applies again;
+<kbd>Ctrl</kbd>+<kbd>C</kbd> ends it early. It is billed the whole time. For
+anything that should stay up longer than a working day, run MMGIS on a real
+server instead -- see the [MMGIS documentation](https://nasa-ammos.github.io/MMGIS/).
+
+**What a stop keeps.** Stopping is a shutdown, not a pause: running processes end
+and nothing in memory survives. The disk does, so on the next start (open it from
+[github.com/codespaces](https://github.com/codespaces)) MMGIS comes back in about a
+minute with your accounts, missions, Configure edits and settings, at the same
+URL. A start can also pick up a newer MMGIS build -- see
+[Staying on the newest version](#staying-on-the-newest-version). If you had made
+the port public, check its visibility on the **Ports** tab after restarting. Only
+deleting the codespace, or rebuilding its container, removes the data.
 
 ## Stopping and deleting it
 
@@ -284,11 +342,11 @@ quick, because the image is already pulled and your data is still there. (If a
 newer MMGIS build has been published meanwhile, starting downloads it -- see
 [Staying on the newest version](#staying-on-the-newest-version).)
 
-It also stops itself after 30 minutes of inactivity, which you can
-[change in your settings](https://docs.github.com/en/codespaces/setting-your-user-preferences/setting-your-timeout-period-for-github-codespaces).
-Leaving it to the timeout is not free, though: idle-but-running time is billed
-until the timeout fires, which on a 2-core machine is a full core-hour of your
-monthly allowance every time you walk away instead of stopping.
+It also stops itself when idle -- see
+[When it shuts itself down](#when-it-shuts-itself-down). Leaving it to the timeout
+is not free, though: idle-but-running time is billed until the timeout fires,
+which on a 2-core machine is a full core-hour of your monthly allowance every time
+you walk away instead of stopping.
 
 **Delete it** (removes the container, the database, and anything you configured):
 

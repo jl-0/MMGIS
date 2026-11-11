@@ -59,21 +59,36 @@ Want to see it before installing anything?
 </div>
 
 One click gives you a complete, pre-configured MMGIS -- application, PostGIS
-database, and a demonstration mission with data in it -- running in a browser tab.
-Nothing to install, no containers to pull, and no server to stand up. Open
-`/configure` on the URL it gives you, enter the setup code shown in its terminal
-(or run `mmgis-info`), pick an admin
-password, and start exploring the Reference Mission.
+database, and the Reference Mission with data in it -- running in a browser tab.
+Nothing to install and no server to stand up.
 
-The codespace runs on your own GitHub account and is billed to you, not to anyone
-else; personal accounts include a monthly allowance at no cost that is far more
-than an evaluation needs. Delete it when you are finished and it is gone, database
-and all.
+<details>
+<summary><b>Read more</b> -- first steps, cost, and when it shuts down</summary>
 
-See **[CODESPACES-DEMO.md](./CODESPACES-DEMO.md)** for how to start it, how to
-reach it, how the billing works, and how to
+<br>
+
+**First steps.** Open a terminal in the codespace: once MMGIS is up it shows the
+URL and a one-time setup code (run `mmgis-info` to see them again). Open
+`/configure` on that URL, enter the setup code, pick an admin password, then open
+the root URL to explore the Reference Mission.
+
+**Cost.** The codespace runs on your own GitHub account and is billed to you, not
+to anyone else; personal accounts include a monthly allowance at no cost that is
+far more than an evaluation needs.
+
+**It shuts itself down.** A codespace is a temporary workspace, not a hosted
+server. It stops after 30 minutes without *you* using it -- MMGIS running in the
+background and people visiting the site do not count -- and after 12 hours no
+matter what. Stopping keeps your data and restarting brings MMGIS back; deleting
+the codespace removes it, database and all.
+
+**More.** [CODESPACES-DEMO.md](./CODESPACES-DEMO.md) covers starting and reaching
+it, [when it shuts down](./CODESPACES-DEMO.md#when-it-shuts-itself-down) and how
+to keep it up for a demo, billing, and how to
 [make it public](./CODESPACES-DEMO.md#making-it-public) -- changing passwords
 included -- if you want to show it to others.
+
+</details>
 
 ## Features
 
