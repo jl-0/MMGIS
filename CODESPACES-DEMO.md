@@ -56,8 +56,15 @@ newest build.
 
 ## Accessing it
 
-When MMGIS is up, the terminal prints its URL and VS Code offers to open it. It
-looks like:
+Starting MMGIS runs in the background, so the editor opens before MMGIS is
+ready. Open a terminal (**Terminal -> New Terminal**, or <kbd>Ctrl</kbd>+<kbd>`</kbd>):
+while MMGIS is still starting it says so, and once it is up every new terminal
+shows its **URL** and the **setup code** you need below. To show them again at
+any time, run:
+
+    mmgis-info
+
+The URL looks like:
 
     https://<your-codespace-name>-8888.app.github.dev
 
@@ -69,12 +76,17 @@ any time on the **Ports** tab in the editor.
 Then:
 
 1. Open **`/configure`** on that URL. Because the instance has no accounts yet,
-   the admin page comes up in **SETUP** mode. Enter the **setup code** printed in
-   the terminal when MMGIS started (`setup code: XXXX-XXXX-XXXX-XXXX`), then
-   choose a username and password, and you are the site administrator.
-   (Passwords need 8+ characters with an uppercase letter, a lowercase letter, a
-   number, and a symbol.) Lost the terminal output? The code is the `SETUP_CODE=`
-   line of `~/.mmgis-codespace/.env`.
+   the admin page comes up in **SETUP** mode. Enter the **setup code** from the
+   terminal (`setup code: XXXX-XXXX-XXXX-XXXX`), then choose a username and
+   password, and you are the site administrator. (Passwords need 8+ characters
+   with an uppercase letter, a lowercase letter, a number, and a symbol.)
+
+   Can't see the code? Run `mmgis-info`, or read it straight from the
+   generated settings with `grep '^SETUP_CODE=' ~/.mmgis-codespace/.env`. The
+   full start-up output, including any errors, is in the creation log:
+   <kbd>F1</kbd> -> **Codespaces: View Creation Log**. In a codespace created
+   before `mmgis-info` existed, use the `grep`, or rebuild the container
+   (<kbd>F1</kbd> -> **Codespaces: Rebuild Container**) to get it.
 2. Open the root URL for the map. The seeded **Reference Mission** -- the Earth
    demo with 20+ layers and most of the tools configured -- is already there.
 3. Explore. Configure is fully editable -- add layers, change the look, make

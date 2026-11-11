@@ -35,6 +35,26 @@ resolve_env_file() {
 
 ENV_FILE="$(resolve_env_file)"
 
+# Show start.sh's message (URL, setup code) in every new terminal, and define
+# `mmgis-info` to show it again: postStartCommand output only reaches the
+# creation log, so without this the setup code is hard to find. Only inside a
+# codespace or dev container -- never edit the rc files of someone running this
+# script on their own machine. Prebuilds run this too; nothing secret is written.
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+if [ -n "${CODESPACES:-}${REMOTE_CONTAINERS:-}" ]; then
+  HOOK_MARK="# mmgis-codespace-info"
+  for rc in "$HOME/.bashrc" "$HOME/.zshrc"; do
+    [ -f "$rc" ] || [ "$rc" = "$HOME/.bashrc" ] || continue
+    grep -qF "$HOOK_MARK" "$rc" 2>/dev/null && continue
+    {
+      echo ""
+      echo "$HOOK_MARK"
+      echo "alias mmgis-info='\"$REPO_ROOT/.devcontainer/scripts/info.sh\"'"
+      echo "[ -t 1 ] && \"$REPO_ROOT/.devcontainer/scripts/info.sh\" --quiet-if-missing"
+    } >> "$rc"
+  done
+fi
+
 if [ -f "$ENV_FILE" ]; then
   echo "[setup-env] $ENV_FILE already exists; leaving it alone."
   exit 0

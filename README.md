@@ -61,7 +61,8 @@ Want to see it before installing anything?
 One click gives you a complete, pre-configured MMGIS -- application, PostGIS
 database, and a demonstration mission with data in it -- running in a browser tab.
 Nothing to install, no containers to pull, and no server to stand up. Open
-`/configure` on the URL it gives you, enter the setup code it prints, pick an admin
+`/configure` on the URL it gives you, enter the setup code shown in its terminal
+(or run `mmgis-info`), pick an admin
 password, and start exploring the Reference Mission.
 
 The codespace runs on your own GitHub account and is billed to you, not to anyone

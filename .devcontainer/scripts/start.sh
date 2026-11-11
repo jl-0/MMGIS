@@ -33,6 +33,13 @@ if [ ! -f "$MMGIS_ENV_FILE" ]; then
   .devcontainer/scripts/setup-env.sh
 fi
 
+# The end-of-start message (URL, setup code) is also saved here, because
+# Codespaces sends postStartCommand output to the creation log, not a terminal.
+# Removed now so a terminal opened mid-start says "still starting" rather than
+# showing the previous run's message. See info.sh.
+INFO_FILE="$(dirname "$MMGIS_ENV_FILE")/info.txt"
+rm -f "$INFO_FILE"
+
 COMPOSE_ARGS=(-p mmgis -f .devcontainer/docker-compose.mmgis.yml)
 if [ "$FLAVOR" = "dev" ]; then
   COMPOSE_ARGS+=(-f .devcontainer/docker-compose.dev.yml)
@@ -241,7 +248,7 @@ if [ "$HAS_SITE_ACCESS" = true ] && [ "$SITE_ACCESS_VALUE" != required ]; then
   ACCESS_NOTE+=$'\n'"  -> Site-wide -> \"Everyone (including guests)\" -> All missions."
 fi
 
-cat <<MSG
+{ cat <<MSG
 
   MMGIS is running.
 
@@ -255,5 +262,8 @@ ${SETUP_LINE}
   The forwarded port is private to you; GitHub handles the HTTPS.
   Everything in here is throwaway: demo credentials, demo data, no backups.
   Sharing it or making it public: see CODESPACES-DEMO.md.
+  Show this again: mmgis-info
 
 MSG
+} | tee "$INFO_FILE"
+chmod 600 "$INFO_FILE"

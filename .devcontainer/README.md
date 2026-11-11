@@ -36,6 +36,19 @@ in SETUP mode: enter the setup code `start.sh` printed, pick a username and
 password, and you are the site's SuperAdmin. (Images that predate the setup code
 show the same form without that field.)
 
+**Where that output goes.** Codespaces sends `postStartCommand` output to the
+creation log (<kbd>F1</kbd> -> *Codespaces: View Creation Log*), not to a terminal,
+so a visitor never sees `start.sh`'s message on their own. `start.sh` therefore
+also saves it to `~/.mmgis-codespace/info.txt` (mode 600, deleted at the start of
+each run so it is never stale), and `setup-env.sh` appends a hook to `~/.bashrc`
+(and `~/.zshrc`, if present) that prints it -- via `scripts/info.sh` -- in every
+new interactive terminal, plus an `mmgis-info` alias to print it on demand.
+Before the file exists, `info.sh` says MMGIS is still starting. The hook is only
+installed when `CODESPACES` or `REMOTE_CONTAINERS` is set, so running
+`setup-env.sh` on your own machine never touches your shell rc files. The setup
+code in that file is a one-time credential, so it is written there and to the
+env file only, never to anything that is committed.
+
 `start.sh` runs on every start and is safe to rerun by hand -- that is how a
 changed `MMGIS_SITE_ACCESS` takes effect:
 
