@@ -98,8 +98,8 @@ fi
 # The env file carries one demo-level setting, MMGIS_SITE_ACCESS, and this turns
 # it into what the MMGIS build in use understands. The auth refactor replaced
 # AUTH with SITE_ACCESS + AUTH_PROVIDERS, and builds after it refuse to start
-# while AUTH is set -- but the last release (`latest`) still predates it, and a
-# fork may pin either. Rewritten on every start, so changing MMGIS_SITE_ACCESS
+# while AUTH is set -- but releases before 5.5 predate it, and a fork may
+# pin either. Rewritten on every start, so changing MMGIS_SITE_ACCESS
 # and running this script again is all it takes.
 
 # Env files written before MMGIS_SITE_ACCESS existed say AUTH=... instead.
@@ -123,14 +123,14 @@ case "$SITE_ACCESS_VALUE" in
     ;;
 esac
 
-MMGIS_IMAGE="${MMGIS_IMAGE:-ghcr.io/nasa-ammos/mmgis:development}"
+MMGIS_IMAGE="${MMGIS_IMAGE:-ghcr.io/nasa-ammos/mmgis:5.5.5}"
 if [ "$FLAVOR" = "dev" ]; then
   # Built from this working tree, so the tree answers the question.
   if [ -d plugins/core/auth ]; then HAS_SITE_ACCESS=true; else HAS_SITE_ACCESS=false; fi
 else
   # Pulled on every start: with a moving tag such as `development`, that is
   # what brings a restarted codespace up to the newest build. A pull of an
-  # unchanged tag only checks the digest. If the registry cannot be reached,
+  # unchanged tag, or of a fixed one such as a release, only checks the digest. If the registry cannot be reached,
   # carry on with the copy already here, if there is one; otherwise stop
   # (set -e) rather than mistake a missing image for one without the refactor.
   echo "[start] pulling ${MMGIS_IMAGE}"

@@ -93,8 +93,8 @@ HTTPS=false
 #
 # MMGIS ignores this name. start.sh translates it on every start into what the
 # image understands: SITE_ACCESS + AUTH_PROVIDERS for builds after the auth
-# refactor, or the legacy AUTH (local / none / off) for older ones, such as the
-# last release. Newer builds refuse to start while AUTH is set, so neither of
+# refactor, or the legacy AUTH (local / none / off) for older ones, such as
+# 5.2.24. Newer builds refuse to start while AUTH is set, so neither of
 # those is written here directly. Run start.sh again after changing it.
 MMGIS_SITE_ACCESS=required
 AUTH_LOCAL_ALLOW_SIGNUP=false

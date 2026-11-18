@@ -31,7 +31,7 @@ capability it is showing:
 
 | Configuration | Where MMGIS comes from | Use it when |
 |---|---|---|
-| **MMGIS Demo** (default) | the newest `development` build on `ghcr.io/nasa-ammos/mmgis` | you want to evaluate current MMGIS and the newest Reference Mission -- starts in about the time it takes to pull an image |
+| **MMGIS Demo** (default) | the 5.5.5 release on `ghcr.io/nasa-ammos/mmgis` | you want to evaluate released MMGIS and its Reference Mission -- starts in about the time it takes to pull an image |
 | **MMGIS Dev** | built from the branch's `Dockerfile` | you want to see a capability that has not shipped yet -- several minutes of build, and it wants a 4-core machine |
 
 If you do not choose, you get **MMGIS Demo**.
@@ -39,20 +39,23 @@ If you do not choose, you get **MMGIS Demo**.
 Nothing else is required of you. The codespace writes its own configuration,
 starts the services, waits for MMGIS to answer, and seeds a demonstration mission.
 
-### Staying on the newest version
+### Which version it runs
 
-The demo runs the `development` build of MMGIS, which upstream republishes as
-changes merge. Every start of the codespace checks for a newer build and, if
-there is one, switches to it and replaces the Reference Mission with the newer
-one. So to update an existing codespace, stop and start it, or run:
+The demo runs the MMGIS 5.5.5 release. A release does not change, so stopping
+and starting the codespace brings back the same MMGIS.
+
+To follow upstream's newest work instead, set `MMGIS_IMAGE` in
+`.devcontainer/devcontainer.json` (in your fork) to
+`ghcr.io/nasa-ammos/mmgis:development`, which upstream republishes as changes
+merge. Every start of the codespace then checks for a newer build and, if there
+is one, switches to it and replaces the Reference Mission with the newer one. To
+update such a codespace, stop and start it, or run:
 
     .devcontainer/scripts/start.sh
 
 Your accounts, other missions and settings are kept. Edits you made to the
-Reference Mission itself are replaced on an update; to keep them, set
-`"MMGIS_SEED_REFRESH": "never"` in `.devcontainer/devcontainer.json` (in your
-fork) before creating the codespace. A brand-new codespace always starts on the
-newest build.
+Reference Mission itself are replaced on an update; to keep them, also set
+`"MMGIS_SEED_REFRESH": "never"` before creating the codespace.
 
 ## Accessing it
 
@@ -320,8 +323,8 @@ server instead -- see the [MMGIS documentation](https://nasa-ammos.github.io/MMG
 and nothing in memory survives. The disk does, so on the next start (open it from
 [github.com/codespaces](https://github.com/codespaces)) MMGIS comes back in about a
 minute with your accounts, missions, Configure edits and settings, at the same
-URL. A start can also pick up a newer MMGIS build -- see
-[Staying on the newest version](#staying-on-the-newest-version). If you had made
+URL. If you switched the demo to a moving image tag, a start can also pick up a
+newer MMGIS build -- see [Which version it runs](#which-version-it-runs). If you had made
 the port public, check its visibility on the **Ports** tab after restarting. Only
 deleting the codespace, or rebuilding its container, removes the data.
 
@@ -338,9 +341,9 @@ timeouts.
 - CLI: `gh codespace stop`
 
 Stopping costs nothing and ends the compute charge immediately; starting again is
-quick, because the image is already pulled and your data is still there. (If a
-newer MMGIS build has been published meanwhile, starting downloads it -- see
-[Staying on the newest version](#staying-on-the-newest-version).)
+quick, because the image is already pulled and your data is still there. (On a
+moving image tag, starting also downloads any newer MMGIS build -- see
+[Which version it runs](#which-version-it-runs).)
 
 It also stops itself when idle -- see
 [When it shuts itself down](#when-it-shuts-itself-down). Leaving it to the timeout

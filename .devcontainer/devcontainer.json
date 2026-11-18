@@ -18,23 +18,22 @@
     "storage": "32gb"
   },
   "containerEnv": {
-    // `development` is rebuilt from upstream's development branch on every
-    // merge, so this runs the newest MMGIS and the newest Reference Mission.
-    // start.sh pulls it on every start, so restarting a codespace is enough
-    // to pick up a new build.
+    // Pinned to the 5.5.5 release. A release tag does not move, so every
+    // codespace runs the same MMGIS and the same Reference Mission. start.sh
+    // still pulls on every start; for a fixed tag that only checks the digest.
     //
-    // To freeze the demo instead, pin a dated build of the same branch, e.g.
-    // `5.5.1-20261105-63003cd` (version-date-commit). Do not use `latest`: on
-    // ghcr.io it is still MMGIS 4.2.34, which predates the Reference Mission
-    // and cannot seed it. `5.2.24` (last tagged release, legacy AUTH) also
-    // works with these scripts. List tags with:
+    // To follow upstream instead, use a moving tag: `development` is rebuilt
+    // on every merge to upstream's development branch and `latest` on every
+    // merge to master. Restarting a codespace is then enough to pick up a new
+    // build. Releases before 5.5 predate the auth refactor; `5.2.24` (legacy
+    // AUTH) still works with these scripts. List tags with:
     //   gh api /orgs/NASA-AMMOS/packages/container/mmgis/versions --jq '.[].metadata.container.tags[]'
-    "MMGIS_IMAGE": "ghcr.io/nasa-ammos/mmgis:development",
+    "MMGIS_IMAGE": "ghcr.io/nasa-ammos/mmgis:5.5.5",
     // Which Reference Mission variant start.sh seeds. See
     // REFERENCE_MISSION_VARIANTS in plugins/core/backend/Utils/missionTemplates.js
     // for the keys: default (Earth), Lunar-SouthPole, Mars.
     "MMGIS_SEED_VARIANT": "default",
-    // When the MMGIS image changes (a newer `development` build, a new pin),
+    // When the MMGIS image changes (a new pin, a newer build of a moving tag),
     // replace the seeded Reference Mission with the new image's blueprint so
     // the demo shows the newest one. This discards Configure edits made to
     // that one mission; other missions are untouched. Set to `never` to keep

@@ -11,7 +11,7 @@ file is for people maintaining these configurations.
 
 | File | Name in the picker | MMGIS comes from |
 |---|---|---|
-| `devcontainer.json` | MMGIS Demo (published image) | `ghcr.io/nasa-ammos/mmgis:development`, re-pulled on every start |
+| `devcontainer.json` | MMGIS Demo (published image) | `ghcr.io/nasa-ammos/mmgis:5.5.5` (the 5.5.5 release) |
 | `dev/devcontainer.json` | MMGIS Dev (build from this branch) | built from this branch's `Dockerfile` |
 
 **The demo configuration has to stay at `.devcontainer/devcontainer.json`, not in a
@@ -189,8 +189,8 @@ and a later `up` recreates the container.)
 ## Customizing
 
 `.devcontainer/` travels with a fork. Pin a different image tag
-(`MMGIS_IMAGE` -- not `latest`, which on ghcr.io is still 4.2.34 and has no
-Reference Mission; see the comment in `devcontainer.json`), seed a different variant, point the seed step at your own
+(`MMGIS_IMAGE` -- another release, or a moving tag such as `development`; see
+the comment in `devcontainer.json`), seed a different variant, point the seed step at your own
 mission data, add services to `docker-compose.mmgis.yml`, or raise
 `hostRequirements`. A fork configured for your project's demo is a supported way
 to use this.
