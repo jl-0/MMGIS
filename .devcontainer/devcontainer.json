@@ -11,7 +11,7 @@
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
   // 2-core / 8 GB is the smallest Codespaces machine and the cheapest against a
-  // visitor's included quota. Only mmgis + db run, so it should fit.
+  // visitor's included quota. Only mmgis, db and titiler run, so it should fit.
   "hostRequirements": {
     "cpus": 2,
     "memory": "8gb",

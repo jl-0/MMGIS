@@ -109,11 +109,17 @@ SETUP_CODE=
 VERBOSE_LOGGING=false
 HIDE_CONFIG=false
 
-# Adjacent servers are off: they are not needed to show the map or Configure,
-# and each one costs start-up time and memory against the visitor's quota.
+# TiTiler is on, with the URL allow-list from sample.env: it is what serves a
+# single COG as a tile layer. Its service is in docker-compose.mmgis.yml.
+WITH_TITILER=true
+TITILER_PORT=8883
+TITILER_ALLOWED_URL_PATTERNS='["^https://(?!.*\\.\\.)(?!.*\\x00).*$", "^/Missions/(?!.*\\.\\.).*$"]'
+
+# The other adjacent servers are off: they are not needed to show the map or
+# Configure, and each one costs start-up time and memory against the visitor's
+# quota. A layer made of many COGs (a mosaic) needs STAC and TiTiler-pgSTAC.
 WITH_STAC=false
 WITH_TIPG=false
-WITH_TITILER=false
 WITH_TITILER_PGSTAC=false
 WITH_VELOSERVER=false
 

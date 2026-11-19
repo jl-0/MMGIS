@@ -1,6 +1,8 @@
-# Base MMGIS stack for the Codespaces demo: just the app and PostGIS.
-# Derived from docker-compose.sample.yml with STAC / TiPG / TiTiler / Veloserver
-# omitted -- each one costs start-up time and memory against the visitor's quota.
+# Base MMGIS stack for the Codespaces demo: the app, PostGIS and TiTiler.
+# Derived from docker-compose.sample.yml with STAC / TiPG / TiTiler-pgSTAC /
+# Veloserver omitted -- each one costs start-up time and memory against the
+# visitor's quota. TiTiler stays because without it a single COG cannot be shown
+# as a tile layer (WITH_TITILER in the generated env file).
 #
 # Credentials: nothing is written literally here. Every value is interpolated
 # from the env file that .devcontainer/scripts/setup-env.sh generates, so there
@@ -53,6 +55,40 @@ services:
       # Mounted rather than assumed present: the published image predates this
       # script, so the demo configuration would not otherwise have it.
       - ../scripts/seed-reference-mission.js:/usr/src/app/scripts/seed-reference-mission.js:ro
+
+  # Same service as docker-compose.sample.yml, with two changes for the smallest
+  # Codespaces machine (8 GB shared with mmgis and db): the sample's 8G memory
+  # limit is 2G here, and GDAL_CACHEMAX is a fixed 512 MB rather than 75% of RAM.
+  # MMGIS proxies /titiler to this service by name; nothing is published to the
+  # host. It has no credentials and reads ../Missions read-only.
+  titiler:
+    # See https://github.com/developmentseed/titiler/discussions/387
+    platform: linux/amd64
+    image: ghcr.io/developmentseed/titiler:2.2.0
+    restart: on-failure
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8883
+      - WEB_CONCURRENCY=1
+      - CPL_TMPDIR=/tmp
+      - CPL_VSIL_CURL_ALLOWED_EXTENSIONS=.tif,.tiff
+      - GDAL_CACHEMAX=512
+      - GDAL_INGESTED_BYTES_AT_OPEN=32768
+      - GDAL_DISABLE_READDIR_ON_OPEN=YES
+      - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
+      - GDAL_HTTP_MULTIPLEX=YES
+      - GDAL_HTTP_VERSION=2
+      - PYTHONWARNINGS=ignore
+      - VSI_CACHE=TRUE
+      - VSI_CACHE_SIZE=536870912
+      - TILEMATRIXSET_DIRECTORY=/adjacent-servers/resources/tilematrixsets/planetcantile_v4
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    volumes:
+      - ../Missions:/Missions:ro
+      - ../adjacent-servers/resources:/adjacent-servers/resources:ro
 
   db:
     image: postgis/postgis:18-3.6-alpine
