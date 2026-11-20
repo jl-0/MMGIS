@@ -5,7 +5,7 @@
  * validates that limiters are configured correctly.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 const { apilimiter, authLimiter, computeLimiter, rejectLongUsername, usernameTooLong, MAX_USERNAME } = require('../../scripts/rateLimiters');
 

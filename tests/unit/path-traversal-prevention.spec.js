@@ -3,7 +3,7 @@
  * Tests isPathInsideRoot() from scripts/middleware.js
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 const path = require('path');
 
 test.describe('Path Traversal Prevention', () => {

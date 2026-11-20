@@ -5,7 +5,7 @@
  * to prevent SQL injection bypass via array coercion (e.g. ?starttime=a&starttime=b).
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 /**
  * Simulates the fixed validation logic from geodatasets.js.

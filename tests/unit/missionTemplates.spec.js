@@ -6,7 +6,7 @@
  * `npm run test:unit`.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 import path from 'path';
 import fs from 'fs';
 

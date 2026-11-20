@@ -2,7 +2,7 @@
  * Unit tests for time-tile directory timestamp parsing.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 const { parseTilesetTimeDir } = require('../../plugins/core/backend/Utils/routes/timeTiles');
 

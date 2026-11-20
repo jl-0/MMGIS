@@ -1,4 +1,4 @@
-import { test, expect, request as apiRequest } from "@playwright/test";
+import { test, expect, request as apiRequest } from "../../helpers/test.js";
 
 /**
  * E2E tests for geodataset statistics.

@@ -5,7 +5,7 @@
  * in Utils.setIn2, dirStore, datasets model column filtering, and QueryURL.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 test.describe('Fix 2: Prototype pollution guards', () => {
   // Replicate the fixed setIn2 logic

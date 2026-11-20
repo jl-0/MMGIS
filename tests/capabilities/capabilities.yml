@@ -1,0 +1,690 @@
+# MMGIS capability registry — the source of truth for test traceability.
+#
+# Two levels: a top-level capability (e.g. `layers`) and its children
+# (e.g. `layers.vector`). Every Playwright test belongs to exactly one capability:
+#
+#   1. An explicit tag on the test or its describe block wins: `{ tag: '@cap:layers.vector' }`
+#      (use it when one spec file covers several capabilities).
+#   2. Otherwise the spec file is matched against the `tests:` globs below.
+#      An exact file path beats a glob; between globs, the first in file order wins.
+#
+# Fields
+#   id           kebab-case, children are `<parent>.<child>`
+#   name         human name used in the report
+#   description  what the capability is, in user terms
+#   status       active | planned | excluded (excluded needs `reason`)
+#   code         globs of product code this capability owns — used for per-capability
+#                coverage and for "changed code with no test change" PR findings
+#   tests        globs of spec files that test it (see rule 2)
+#   specs        related spec-kit folders in specs/
+#   scenarios    behaviours that should be covered (seeded from the Gherkin
+#                feature files on branch feature/bdd-gherkin-tests). The report lists
+#                them under "Planned behaviours" until a test claims them with
+#                `scenario('<text>')` (see tests/helpers/test.js).
+#
+# `npm run test:registry` validates this file against the real spec files.
+
+capabilities:
+  # ───────────────────────────────────────────────────────────────── access
+  - id: access
+    name: Authentication & Access Control
+    description: >
+      Signing in to MMGIS, sessions, accounts, and the permission model that decides
+      who may see and change each mission (SITE_ACCESS, AUTH_PROVIDERS, roles, groups, tokens).
+    specs: [specs/001-authentication-and-user-management]
+    children:
+      - id: access.login
+        name: Login, signup & sessions
+        description: Local login and signup flows, password management, session lifetime and guest access.
+        code:
+          - plugins/core/auth/Local/**
+          - views/login*.pug
+          - plugins/core/backend/Users/**
+        tests:
+          - tests/e2e/auth/login-flow.spec.js
+          - tests/e2e/auth/signup-flow.spec.js
+          - tests/e2e/auth/password-management.spec.js
+          - tests/e2e/auth/session-management.spec.js
+          - tests/e2e/auth/guest-access.spec.js
+          - plugins/core/backend/Users/tests/*.spec.js
+          - tests/e2e/security/local-provider-routes.spec.js
+      - id: access.permissions
+        name: Permissions & site access
+        description: >
+          Capability-based authorization (`s.authorize`), roles and scoped role bindings,
+          SITE_ACCESS modes, setup codes and legacy permission import.
+        code:
+          - API/permissions/**
+          - plugins/core/backend/Access/**
+          - scripts/auth-migrate.js
+        tests:
+          - tests/unit/permissions-*.spec.js
+          - tests/e2e/auth/authorization.spec.js
+          - tests/e2e/auth/permission-matrix.spec.js
+          - tests/e2e/security/missions-viewing.spec.js
+          - tests/e2e/configure/configure-access.spec.js
+      - id: access.providers
+        name: Login providers (proxy)
+        description: Login provider plugins, including the reverse-proxy provider and its trust modes.
+        code:
+          - plugins/core/auth/Proxy/**
+        tests:
+          - tests/e2e/proxy/*.spec.js
+      - id: access.accounts
+        name: Accounts & tokens
+        description: Account administration and long-term API tokens.
+        code:
+          - plugins/core/backend/Accounts/**
+          - plugins/core/backend/LongTermToken/**
+        tests:
+          - plugins/core/backend/Accounts/tests/*.spec.js
+          - plugins/core/backend/LongTermToken/tests/*.spec.js
+          - tests/unit/token-expiry-and-log-redaction.spec.js
+      - id: access.connections
+        name: Service connections
+        description: Third-party service connections (e.g. Earthdata) that tools declare in plugin.json.
+        code:
+          - API/connections/**
+          - src/essence/Basics/Connections_/**
+          - plugins/core/connections/**
+        tests:
+          - tests/unit/connections.spec.js
+
+  # ─────────────────────────────────────────────────────────────── security
+  - id: security
+    name: Security Hardening
+    description: >
+      Defences that apply across MMGIS: input validation, injection and traversal protection,
+      safe headers, rate limiting, output sanitization.
+    children:
+      - id: security.injection
+        name: SQL injection protection
+        description: Parameterised queries and identifier sanitization for every user-supplied filter.
+        code: [API/utils.js]
+        tests:
+          - tests/e2e/security/sql-injection.spec.js
+          - tests/e2e/security/geodatasets-in-filter.spec.js
+          - tests/e2e/api/filesutils-sql-injection.spec.js
+          - tests/unit/sql-injection-prevention.spec.js
+      - id: security.paths
+        name: Path traversal & file access
+        description: Mission paths, GDAL dataset paths and static file serving cannot escape their roots.
+        code:
+          - API/validateMissionsPath.js
+          - API/validateGdalDatasetPath.js
+        tests:
+          - tests/e2e/security/path-traversal.spec.js
+          - tests/e2e/security/gdal-dataset-path.spec.js
+          - tests/unit/path-traversal-prevention.spec.js
+          - tests/unit/validateGdalDatasetPath.spec.js
+          - tests/unit/validateMissionsPath.spec.js
+      - id: security.web
+        name: Headers, auth bypass & web hardening
+        description: Security headers, header injection, auth-bypass attempts, XSS and prototype pollution.
+        code:
+          - scripts/middleware.js
+          - API/origin.js
+        tests:
+          - tests/e2e/security/headers.spec.js
+          - tests/e2e/security/header-injection.spec.js
+          - tests/e2e/security/auth-bypass.spec.js
+          - tests/e2e/security/configure-export.spec.js
+          - tests/unit/dom-xss-sanitization.spec.js
+          - tests/unit/prototype-pollution.spec.js
+          - tests/unit/security-fixes.spec.js
+      - id: security.ratelimit
+        name: Rate limiting
+        description: Request rate limits on sensitive and expensive routes.
+        code: [scripts/rateLimiters.js]
+        tests:
+          - tests/e2e/api/ratelimit.spec.js
+          - tests/unit/rate-limiting.spec.js
+      - id: security.logging
+        name: Log sanitization
+        description: Secrets and user input are redacted or neutralised before they reach the logs.
+        code: [API/logger.js]
+        tests:
+          - tests/unit/logger-sanitization.spec.js
+
+  # ─────────────────────────────────────────────────────────────── missions
+  - id: missions
+    name: Mission Configuration (Configure CMS)
+    description: >
+      Creating and editing missions in the Configure page: layers, tools, interactions,
+      cloning, versioned configs, templates and the Reference Missions.
+    specs:
+      - specs/004-mission-project-configuration
+      - specs/008-configure-page
+      - specs/012-reference-mission-demo
+    children:
+      - id: missions.crud
+        name: Mission create, clone & versions
+        description: Adding, cloning, renaming and deleting missions and their versioned configurations.
+        code:
+          - plugins/core/backend/Config/**
+          - configure/src/core/**
+        tests:
+          - tests/e2e/configure/mission-crud.spec.js
+          - tests/e2e/configure/clone.spec.js
+          - plugins/core/backend/Config/tests/*.spec.js
+          - tests/e2e/api/configure-add-header-layer.spec.js
+      - id: missions.layers
+        name: Configure layers
+        description: Adding, ordering and editing layers and their type-specific options in the CMS.
+        code:
+          - configure/src/**/Layer*/**
+          - configure/src/metaconfigs/layer-*.json
+        tests:
+          - tests/e2e/configure/layer-management.spec.js
+          - tests/e2e/configure/layer-type-options.spec.js
+      - id: missions.tools
+        name: Configure tools & interactions
+        description: Enabling and configuring tools, components and interactions for a mission.
+        code:
+          - configure/src/**/Tools/**
+          - configure/src/**/Interactions/**
+          - configure/src/**/Components/**
+        tests:
+          - tests/e2e/configure/tool-configuration.spec.js
+          - tests/e2e/configure/interaction-settings.spec.js
+          - tests/unit/configureInteractions.spec.js
+          - tests/unit/componentsTab.spec.js
+          - tests/unit/componentModal.spec.js
+          - tests/unit/layerAttachmentTabs.spec.js
+      - id: missions.reference
+        name: Reference Missions & templates
+        description: The Earth and Lunar South Pole Reference Missions, blueprints and mission templates.
+        code:
+          - blueprints/**
+          - API/templates/**
+        tests:
+          - tests/e2e/reference-mission.spec.js
+          - tests/e2e/reference-mission-lunar-southpole.spec.js
+          - tests/unit/missionTemplates.spec.js
+      - id: missions.storage
+        name: Mission files & shared folder
+        description: The Missions/ folder layout, the shared folder and general site options.
+        code:
+          - plugins/core/backend/GeneralOptions/**
+        tests:
+          - tests/unit/sharedMissionFolder.spec.js
+          - plugins/core/backend/GeneralOptions/tests/*.spec.js
+
+  # ──────────────────────────────────────────────────────────────────── map
+  - id: map
+    name: Map Display & Navigation
+    description: >
+      The mission viewer: the 2D Leaflet map, the 3D globe, panels, deep links,
+      coordinates, search, and how the page behaves on different devices and browsers.
+    specs:
+      - specs/005-dual-map-rendering-engines
+    children:
+      - id: map.view
+        name: Map initialisation & navigation
+        description: Loading a mission, initial view, panning/zooming, landing page and error handling.
+        code:
+          - src/essence/Basics/Map_/**
+          - src/essence/LandingPage/**
+          - src/essence/essence.js
+        tests:
+          - tests/e2e/smoke.spec.js
+          - tests/e2e/map/map-init.spec.js
+          - tests/e2e/map/landing-page.spec.js
+          - tests/e2e/map/error-handling.spec.js
+        scenarios:
+          - Loading a mission with default view
+          - Panning and zooming the map
+      - id: map.globe
+        name: 3D globe
+        description: The Cesium/LithoSphere globe and keeping 2D and 3D views in sync.
+        code:
+          - src/essence/Basics/Globe_/**
+        tests:
+          - tests/unit/globeRendererAddLayer.spec.js
+          - tests/unit/globeSelectionIdentity.spec.js
+          - tests/unit/cesiumVectorReloadIds.spec.js
+        scenarios:
+          - Switching between 2D and 3D views
+      - id: map.coordinates
+        name: Coordinates, deep links & projections
+        description: Coordinate display and conversions, custom projections and shareable deep links.
+        code:
+          - src/essence/Basics/Formulae_/**
+          - plugins/core/backend/Shortener/**
+        tests:
+          - tests/e2e/map/coordinates.spec.js
+          - tests/e2e/map/deep-linking.spec.js
+          - tests/unit/formulae.spec.js
+          - plugins/core/backend/Shortener/tests/*.spec.js
+        scenarios:
+          - Deep linking to specific map coordinates
+          - Custom projection coordinate display
+      - id: map.ui
+        name: Panels, widgets & controls
+        description: Panel layout, bottom bar, widgets, context menu, hotkeys and the UI store.
+        code:
+          - src/essence/Basics/UserInterface_/**
+          - src/design-system/**
+        tests:
+          - tests/e2e/map/panel-layout.spec.js
+          - tests/e2e/map/bottom-bar.spec.js
+          - tests/e2e/map/widgets.spec.js
+          - tests/e2e/map/context-menu.spec.js
+          - tests/e2e/map/hotkeys.spec.js
+          - tests/unit/uiStore.spec.js
+          - tests/unit/userInterfaceBridge.spec.js
+      - id: map.search
+        name: Search
+        description: Global search across layers and features.
+        code:
+          - plugins/core/components/Search/**
+        tests:
+          - tests/e2e/globalSearch.spec.js
+          - tests/e2e/ui/search.spec.js
+          - tests/unit/globalSearch.spec.js
+      - id: map.devices
+        name: Browsers, devices & accessibility
+        description: Responsive/mobile layout, cross-browser rendering, keyboard navigation and accessibility.
+        code:
+          - src/essence/Basics/UserInterface_/UserInterfaceMobile_.css
+        tests:
+          - tests/e2e/mobile/*.spec.js
+          - tests/e2e/cross-browser/*.spec.js
+          - tests/e2e/accessibility/*.spec.js
+
+  # ───────────────────────────────────────────────────────────────── layers
+  - id: layers
+    name: Layers & Layer Types
+    description: >
+      Loading and displaying data layers of every type, styling them, filtering them,
+      and the layer-type plugin system that defines them.
+    specs:
+      - specs/007-layer-and-map-configuration
+      - specs/009-data-formats-and-layer-types
+    children:
+      - id: layers.lifecycle
+        name: Layer loading, toggling & refresh
+        description: Acquiring, adding, toggling, reloading and refreshing layers; the layer tree.
+        code:
+          - src/essence/Basics/Layers_/Layers_.js
+          - src/essence/Basics/Layers_/lifecycle/**
+          - src/essence/Basics/Layers_/hierarchy/**
+          - src/essence/Basics/Layers_/data/**
+          - src/essence/Basics/Layers_/interface/**
+        tests:
+          - tests/e2e/map/layer-toggle.spec.js
+          - tests/unit/layerAcquire.spec.js
+          - tests/unit/layerInterface.spec.js
+          - tests/unit/layerSource.spec.js
+          - tests/unit/layerSurfaces.spec.js
+          - tests/unit/layerToggleSubscriptions.spec.js
+          - tests/unit/refreshAndAvailability.spec.js
+        scenarios:
+          - Toggling layer visibility
+          - Adjusting layer opacity
+          - Managing layer groups and hierarchy
+      - id: layers.types
+        name: Layer types
+        description: >
+          vector, tile, vectortile, data, model, image, velocity, video, header, query and
+          3D tiles layers, defined as layer-type plugins.
+        code:
+          - plugins/core/layertypes/**
+          - src/essence/Basics/Layers_/registry/**
+          - src/essence/Basics/Layers_/render/**
+        tests:
+          - plugins/core/layertypes/**/tests/*.spec.js
+          - tests/e2e/map/layer-types.spec.js
+          - tests/e2e/map/kinds.spec.js
+          - tests/unit/layerTypeBranchGuardrail.spec.js
+          - tests/unit/layerTypeConfigValidation.spec.js
+          - tests/unit/layerTypeInheritance.spec.js
+          - tests/unit/updateLayerTypes.spec.js
+        scenarios:
+          - Loading and displaying raster layers
+          - Displaying vector layer features
+          - Cloud Optimized GeoTIFF (COG) layer performance
+          - Streamlines visualization with wind data
+          - Particle visualization with atmospheric data
+          - Velocity layer data format support
+      - id: layers.formats
+        name: Data formats (KML, GeoJSON, …)
+        description: Reading supported vector formats such as KML into layers.
+        code: []
+        tests:
+          - tests/e2e/map/kml-layer.spec.js
+          - tests/unit/kml-support.spec.js
+          - tests/unit/turf.spec.js
+      - id: layers.styling
+        name: Styling & dynamic style
+        description: Static and data-driven (dynamic) styles, gradients and legends derived from style.
+        code:
+          - src/essence/Basics/Layers_/display/**
+          - src/essence/Basics/Layers_/legend/**
+        tests:
+          - tests/e2e/map/dynamic-style.spec.js
+          - tests/unit/dynamicStyle*.spec.js
+          - tests/unit/layerDynamicStyle.spec.js
+          - tests/unit/gradientPolyline.spec.js
+          - tests/unit/legendValueUnits.spec.js
+        scenarios:
+          - Velocity layer customization and styling
+      - id: layers.filtering
+        name: Layer filtering
+        description: Filtering layer features by property and spatial extent.
+        code:
+          - src/essence/Basics/Layers_/Filtering/**
+        tests:
+          - tests/e2e/map/layer-filtering.spec.js
+        scenarios:
+          - Layer filtering functionality
+      - id: layers.attachments
+        name: Layer attachments
+        description: Labels, bearings, image overlays, models, pairings, uncertainty ellipses and other attachments.
+        code:
+          - plugins/core/layerattachments/**
+        tests:
+          - tests/unit/defaultAttachments.spec.js
+          - tests/unit/updateLayerAttachments.spec.js
+
+  # ──────────────────────────────────────────────────────────────── geodata
+  - id: geodata
+    name: Geodata & Tile Services
+    description: >
+      Storing and serving geospatial data: geodatasets and datasets in PostGIS, STAC catalogs,
+      TiTiler/COG tiles, imaging, and the adjacent servers MMGIS proxies.
+    specs:
+      - specs/002-geodata-management-and-tile-serving
+    children:
+      - id: geodata.geodatasets
+        name: Geodatasets
+        description: Uploading, querying, appending to and computing statistics on PostGIS geodatasets.
+        code:
+          - plugins/core/backend/Geodatasets/**
+        tests:
+          - plugins/core/backend/Geodatasets/tests/*.spec.js
+          - tests/e2e/api/geodatasets-*.spec.js
+          - tests/unit/geodatasets-*.spec.js
+      - id: geodata.datasets
+        name: Datasets
+        description: Tabular datasets joined to layers by key.
+        code:
+          - plugins/core/backend/Datasets/**
+        tests:
+          - plugins/core/backend/Datasets/tests/*.spec.js
+      - id: geodata.stac
+        name: STAC catalogs
+        description: STAC collections and items, served directly or as mosaics.
+        code:
+          - plugins/core/backend/Stac/**
+          - adjacent-servers/stac/**
+        tests:
+          - plugins/core/backend/Stac/tests/*.spec.js
+          - tests/unit/stac-url-transformation.spec.js
+        scenarios:
+          - Loading vector features from STAC Item
+          - Browsing STAC Collection as vector features
+          - STAC Collection as tile mosaic through TiTiler-PgSTAC
+          - STAC search with spatial and temporal filters
+      - id: geodata.tiles
+        name: TiTiler, COGs & adjacent servers
+        description: TiTiler tile serving, expression and URL validation, and the proxied adjacent servers.
+        code:
+          - adjacent-servers/**
+        tests:
+          - tests/e2e/api/titiler-planetcantile.spec.js
+          - tests/e2e/api/adjacent-servers.spec.js
+          - tests/unit/validateTitiler*.spec.js
+          - tests/unit/proxyPath.spec.js
+          - tests/unit/timeTilesParser.spec.js
+        scenarios:
+          - Serving basic COG through TiTiler
+          - Transforming 32-bit COG with color scaling
+          - Multi-band COG with custom band selection
+          - COG with custom tile matrix set for non-Web Mercator projection
+          - TiTiler error handling for invalid COG
+      - id: geodata.imaging
+        name: Image processing
+        description: Server-side image handling with sharp.
+        code: []
+        tests:
+          - tests/e2e/api/sharp-imaging.spec.js
+          - tests/unit/sharp.spec.js
+
+  # ────────────────────────────────────────────────────────────────── tools
+  - id: tools
+    name: Interactive Mapping Tools
+    description: >
+      The tools users open from the toolbar: Draw, Info, Identifier, Legend, Measure, Sites,
+      Viewshed, Sightline, Layers, Animation, Curtain — plus the tool controller that loads them.
+    specs:
+      - specs/006-interactive-mapping-tools
+      - specs/010-drawtool-point-template-field
+    children:
+      - id: tools.draw
+        name: Draw
+        description: Drawing, editing, templating, sharing and publishing features in draw files.
+        code:
+          - plugins/core/tools/Draw/**
+          - plugins/core/backend/Draw/**
+        tests:
+          - plugins/core/tools/Draw/tests/*.spec.js
+          - plugins/core/backend/Draw/tests/*.spec.js
+        scenarios:
+          - Creating basic geometric shapes
+          - Editing drawing properties
+          - Using drawing templates
+          - Managing drawing files
+          - Collaborative drawing features
+          - Drawing file sharing and permissions
+          - Drawing data export and import
+      - id: tools.info
+        name: Info & Identifier
+        description: Inspecting feature properties (Info) and raster values under the cursor (Identifier).
+        code:
+          - plugins/core/tools/Info/**
+          - plugins/core/tools/Identifier/**
+          - src/essence/Basics/Layers_/inspect/**
+        tests:
+          - plugins/core/tools/Info/tests/*.spec.js
+          - plugins/core/tools/Identifier/tests/*.spec.js
+        scenarios:
+          - Querying vector feature properties
+          - Property display formatting and sorting
+          - Multi-feature selection and comparison
+          - Info tool keyboard navigation
+      - id: tools.legend
+        name: Legend
+        description: The Legend tool, including highlighting values resolved by the Identifier.
+        code:
+          - plugins/core/tools/Legend/**
+        tests:
+          - plugins/core/tools/Legend/tests/*.spec.js
+          - tests/e2e/tools/legend-highlight.spec.js
+          - tests/unit/legendHighlight.spec.js
+      - id: tools.measure
+        name: Measure
+        description: Distance, area and elevation-profile measurement.
+        code:
+          - plugins/core/tools/Measure/**
+        tests:
+          - plugins/core/tools/Measure/tests/*.spec.js
+        scenarios:
+          - Basic distance measurement
+          - Multi-segment distance measurement
+          - Elevation profile generation
+          - Measurement unit conversion
+          - Area measurement functionality
+      - id: tools.analysis
+        name: Viewshed & Sightline
+        description: "Line-of-sight analysis: viewsheds, sightmaps and horizon profiles."
+        code:
+          - plugins/core/tools/Viewshed/**
+          - plugins/core/tools/Sightline/**
+          - plugins/core/backend/Sightline/**
+        tests:
+          - plugins/core/tools/Viewshed/tests/*.spec.js
+          - plugins/core/backend/Sightline/tests/*.spec.js
+          - tests/unit/sightlineTool.spec.js
+      - id: tools.layers-sites
+        name: Layers & Sites tools
+        description: The Layers tool panel and the Sites tool.
+        code:
+          - plugins/core/tools/Layers/**
+          - plugins/core/tools/Sites/**
+        tests:
+          - plugins/core/tools/Layers/tests/*.spec.js
+          - plugins/core/tools/Sites/tests/*.spec.js
+      - id: tools.controller
+        name: Tool controller
+        description: Loading tools lazily, separated tools, and the tool lifecycle (make/destroy).
+        code:
+          - src/essence/Basics/ToolController_/**
+          - API/updateTools.js
+        tests:
+          - tests/e2e/tools/separated-tools.spec.js
+          - tests/unit/toolControllerHelpers.spec.js
+          - tests/unit/toolLazyLoading.spec.js
+          - tests/unit/updateTools.spec.js
+      - id: tools.animation
+        name: Animation & Curtain
+        description: The Animation tool (including mobile mode) and the Curtain comparison tool.
+        status: planned
+        code:
+          - plugins/core/tools/Animation/**
+          - plugins/core/tools/Curtain/**
+        tests: []
+
+  # ─────────────────────────────────────────────────────────────────── time
+  - id: time
+    name: Time & Temporal Data
+    description: The time control, time-enabled layers and keeping temporal layers consistent as time changes.
+    children:
+      - id: time.control
+        name: Time control
+        description: The time UI, current time, ranges and playback.
+        code:
+          - src/essence/Basics/TimeControl_/**
+        tests:
+          - tests/e2e/time/time-control.spec.js
+        scenarios:
+          - Temporal layer control
+          - Velocity layer with temporal animation
+          - STAC temporal queries with time controls
+      - id: time.layers
+        name: Temporal layer reload
+        description: Reloading time-enabled layers safely, including concurrent reloads.
+        code: []
+        tests:
+          - tests/e2e/time/concurrent-layer-reload.spec.js
+
+  # ────────────────────────────────────────────────────────── collaboration
+  - id: collaboration
+    name: Real-time Collaboration
+    description: WebSocket updates between users and to external systems (broadcast, webhooks).
+    specs:
+      - specs/003-real-time-collaboration-infrastructure
+    children:
+      - id: collaboration.websocket
+        name: WebSocket sessions
+        description: Multi-user sessions over WebSockets and live config/layer updates.
+        code:
+          - API/websocket.js
+        tests:
+          - tests/e2e/collaboration/*.spec.js
+          - tests/unit/websocket-broadcast.spec.js
+      - id: collaboration.broadcast
+        name: Broadcast & webhooks
+        description: Broadcast messages to clients and outgoing webhooks on data changes.
+        code:
+          - plugins/core/backend/Broadcast/**
+          - plugins/core/backend/Webhooks/**
+        tests:
+          - plugins/core/backend/Broadcast/tests/*.spec.js
+          - plugins/core/backend/Webhooks/tests/*.spec.js
+          - tests/unit/broadcast.spec.js
+          - tests/unit/webhookEntries.spec.js
+
+  # ─────────────────────────────────────────────────────────────── platform
+  - id: platform
+    name: Platform, Plugins & Operations
+    description: >
+      The server and the plugin system everything else is built on: startup, middleware,
+      the database layer, the API, plugin discovery/validation/CLI, components, interactions,
+      performance and CI.
+    specs:
+      - specs/011-plugin-components-system
+    children:
+      - id: platform.server
+        name: Server startup & middleware
+        description: Starting the server, environment handling, middleware order, logging at startup.
+        code:
+          - scripts/server.js
+          - scripts/middleware.js
+          - scripts/init-db.js
+          - API/setups.js
+          - API/testEnv.js
+        tests:
+          - tests/e2e/startup/*.spec.js
+          - tests/e2e/middleware.spec.js
+          - tests/e2e/api/env-behavior.spec.js
+          - tests/unit/server-startup-logs.spec.js
+          - tests/unit/static-middleware-order.spec.js
+      - id: platform.api
+        name: REST API & database
+        description: The public MMGIS API, API docs, utility routes and the Sequelize/PostGIS layer.
+        code:
+          - API/database.js
+          - API/connection.js
+          - plugins/core/backend/Utils/**
+          - src/essence/mmgisAPI/**
+        tests:
+          - tests/e2e/api/mmgis-api.spec.js
+          - tests/e2e/api/docs.spec.js
+          - tests/e2e/api/sequelize-orm.spec.js
+          - tests/unit/sequelize.spec.js
+          - plugins/core/backend/Utils/tests/*.spec.js
+      - id: platform.plugins
+        name: Plugin system & CLI
+        description: Discovering, validating and installing plugins, their dependencies and the plugin CLI.
+        code:
+          - API/pluginDiscovery.js
+          - API/pluginValidation.js
+          - API/pluginFaults.js
+          - plugin-cli/**
+          - scripts/resolve-plugin-deps.js
+          - scripts/install-plugin-deps.js
+        tests:
+          - tests/unit/plugin*.spec.js
+          - tests/unit/resolvePluginDeps.spec.js
+          - tests/unit/declaredReferences.spec.js
+      - id: platform.components
+        name: Components & interactions
+        description: UI components (e.g. Operations Clock) and declarative interactions between layers, tools and the viewer.
+        code:
+          - src/essence/Basics/ComponentController_/**
+          - src/essence/Basics/InteractionRunner/**
+          - plugins/core/components/**
+          - plugins/core/interactions/**
+        tests:
+          - tests/unit/componentController.spec.js
+          - tests/unit/essenceComponentIntegration.spec.js
+          - tests/unit/defaultInteractions.spec.js
+          - tests/unit/interaction*.spec.js
+          - tests/unit/updateInteractions.spec.js
+      - id: platform.performance
+        name: Performance
+        description: Page-load and API response-time budgets.
+        code: []
+        tests:
+          - tests/e2e/performance/*.spec.js
+      - id: platform.ci
+        name: CI & test infrastructure
+        description: GitHub Actions hardening and the test/reporting infrastructure itself.
+        code:
+          - .github/workflows/**
+          - tests/reporting/**
+          - tests/capabilities/**
+        tests:
+          - tests/ci/*.spec.js
+          - tests/capabilities/*.spec.js

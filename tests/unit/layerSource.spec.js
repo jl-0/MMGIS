@@ -8,7 +8,7 @@
  * globeRendererAddLayer.spec.js).
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test.js'
 import {
     acceptsDynamicResult,
     sourceCtx,

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../helpers/test.js';
 import { MISSION_MSV } from '../../fixtures/mission-config.js';
 
 const MISSION_URL = `/?mission=${MISSION_MSV.mission}`;

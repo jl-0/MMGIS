@@ -5,7 +5,7 @@
  * carrying a pasted copy of every attachment's fields.
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test.js'
 
 const fs = require('fs')
 const path = require('path')

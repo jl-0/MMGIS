@@ -4,7 +4,7 @@
  * datasets are only opened when an operator allowlisted their prefix.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 const path = require('path');
 const validateGdalDatasetPath = require('../../API/validateGdalDatasetPath');
 

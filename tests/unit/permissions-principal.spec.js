@@ -4,7 +4,7 @@
  * connection storage for those principals, and the websocket's saved proxy identity.
  * Database models are replaced with in-memory fakes.
  */
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../helpers/test.js');
 const path = require('path');
 const { Op } = require('sequelize');
 

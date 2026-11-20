@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../helpers/test.js';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { waitForMapReady } from '../../helpers/map-helpers.js';

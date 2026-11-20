@@ -3,7 +3,7 @@
  * Tests that Draw/Files API properly sanitizes filter inputs.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../helpers/test.js';
 
 test.describe('filesutils SQL injection prevention', () => {
 

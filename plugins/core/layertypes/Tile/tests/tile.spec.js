@@ -7,7 +7,7 @@
  * middleware — renders and lifecycles identically to the pre-plugin behavior on
  * the Reference Mission (parity-with-today is the spec).
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../../../../../tests/helpers/test.js'
 import {
     waitForMapReady,
     waitForTilesLoaded,

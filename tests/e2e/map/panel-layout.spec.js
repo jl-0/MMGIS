@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../helpers/test.js';
 import { waitForMapReady } from '../../helpers/map-helpers.js';
 import { MISSION_PANELS } from '../../fixtures/mission-config.js';
 

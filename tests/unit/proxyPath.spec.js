@@ -3,7 +3,7 @@
  * stripping MMGIS credentials from proxied requests.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 const { routedPath, stripCredentials, forwardParsedBody } = require('../../adjacent-servers/proxyPath');
 
 test.describe('routedPath', () => {

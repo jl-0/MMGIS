@@ -2,7 +2,7 @@
  * Unit tests for Webhooks entries response formatting.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 const path = require('path');
 
 const buildEntriesResponse = require(path.resolve(

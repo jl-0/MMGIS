@@ -5,7 +5,7 @@
  * Tests pass explicit config objects to avoid depending on the generated file.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 const fs = require('fs');
 const path = require('path');

@@ -9,7 +9,7 @@
  * exist, and hold a plugin type only to the checks it declares for itself.
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test.js'
 
 import {
     validateLayer,

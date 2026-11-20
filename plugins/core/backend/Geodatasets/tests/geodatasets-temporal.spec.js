@@ -1,4 +1,4 @@
-import { test, expect, request as apiRequest } from '@playwright/test';
+import { test, expect, request as apiRequest } from '../../../../../tests/helpers/test.js';
 import { execFileSync } from 'child_process';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';

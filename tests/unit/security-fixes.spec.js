@@ -7,7 +7,7 @@
  * - Fix 9: Password strength enforcement on /resetPassword
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 const path = require('path');
 
 test.describe('Fix 1: Path Traversal in /destroy route', () => {

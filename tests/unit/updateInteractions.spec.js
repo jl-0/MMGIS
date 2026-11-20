@@ -8,7 +8,7 @@
  * Tests are serial — they mutate the plugins tree and must clean up.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 const fs = require('fs');
 const path = require('path');

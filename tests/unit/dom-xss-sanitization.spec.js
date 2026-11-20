@@ -5,7 +5,7 @@
  * (no DOM APIs needed — runs in Node context).
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 test.describe('Fix 6: DOM XSS sanitization', () => {
   // Regex-based sanitizer matching the DOMPurify allowed-tags approach

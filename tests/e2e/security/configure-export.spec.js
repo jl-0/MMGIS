@@ -1,4 +1,4 @@
-import { test, expect, request as apiRequest } from "@playwright/test";
+import { test, expect, request as apiRequest } from "../../helpers/test.js";
 import { loginHeaders } from "../../helpers/auth.js";
 
 const baseURL = process.env.TEST_BASE_URL || "http://localhost:18888";

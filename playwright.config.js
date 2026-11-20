@@ -6,6 +6,8 @@ loadDotenv();
 process.env.MMGIS_TEST_SITE_ACCESS =
   ['public', 'optional', 'required'].includes(process.env.SITE_ACCESS) ? process.env.SITE_ACCESS : 'public';
 
+const RUN_TAG = (process.env.MMGIS_RUN_TAG || "").replace(/[^A-Za-z0-9_.-]/g, "-");
+
 /**
  * Playwright configuration for MMGIS
  * @see https://playwright.dev/docs/test-configuration
@@ -44,13 +46,28 @@ export default defineConfig({
   // actually slows the suite down. CI still runs serially (1 worker).
   workers: process.env.CI ? 1 : 4,
 
-  // Reporter configuration
-  reporter: [
-    ["html", { outputFolder: "playwright-report" }],
-    ["json", { outputFile: "playwright-report/results.json" }],
-    ["junit", { outputFile: "playwright-report/results.xml" }],
-    ["list"],
-  ],
+  // Each CI job/step names its configuration (e.g. "e2e-auth-local"). The name is
+  // added to every test as a `@run:<name>` tag so the merged capability report can
+  // show one test executed under several configurations.
+  tag: RUN_TAG ? `@run:${RUN_TAG}` : undefined,
+
+  // Reporter configuration.
+  // CI: each job writes a blob report; the `report` job merges every blob with
+  // `playwright merge-reports --config tests/reporting/merge.config.mjs`, which
+  // produces the Playwright HTML report and the capability report (test-report/).
+  // Local: the capability report is written to test-report/ after every run.
+  reporter: process.env.MMGIS_BLOB_REPORT
+    ? [
+        ["blob", { outputDir: "blob-report", fileName: `${RUN_TAG || "run"}.zip` }],
+        ["list"],
+      ]
+    : [
+        ["html", { outputFolder: "playwright-report", open: "never" }],
+        ["json", { outputFile: "playwright-report/results.json" }],
+        ["junit", { outputFile: "playwright-report/results.xml" }],
+        ["./tests/reporting/capability-reporter.mjs", { outputFolder: "test-report" }],
+        ["list"],
+      ],
 
   // Shared settings for all projects
   use: {

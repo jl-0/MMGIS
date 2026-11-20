@@ -6,7 +6,7 @@
  * detection logic without touching the live source tree.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 const {
     mergeNpm,

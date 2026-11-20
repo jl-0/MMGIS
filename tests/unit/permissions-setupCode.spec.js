@@ -3,7 +3,7 @@
  * Source: API/permissions/setupCode.js
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 const path = require('path');
 
 const setupCode = require(path.resolve(__dirname, '../../API/permissions/setupCode.js'));

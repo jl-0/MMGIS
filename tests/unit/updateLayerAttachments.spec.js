@@ -6,7 +6,7 @@
  * suppress correctly without knowing any attachment by name.
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test.js'
 
 const fs = require('fs')
 const path = require('path')

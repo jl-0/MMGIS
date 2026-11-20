@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../../../tests/helpers/test.js';
 
 /**
  * E2E tests for the Sites Tool.

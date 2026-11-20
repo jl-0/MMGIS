@@ -2,7 +2,7 @@
  * Unit tests for the one-time legacy permission import.
  * Source: API/permissions/legacyImport.js
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 const path = require('path');
 
 const root = path.resolve(__dirname, '../..');

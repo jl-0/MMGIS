@@ -4,7 +4,7 @@
  * status, return paths and the standard connection_required reply.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 const fs = require('fs');
 const os = require('os');

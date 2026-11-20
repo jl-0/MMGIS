@@ -3,7 +3,7 @@
  * (plugins/core/backend/Config/constants.js).
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 const {
   SHARED_MISSION_FOLDER_NAME,
   isReservedMissionName,

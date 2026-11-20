@@ -9,7 +9,7 @@
  * plugins/ directory. Each test cleans up after itself.
  */
 
-import { test as base, expect } from '@playwright/test';
+import { test as base, expect } from '../helpers/test.js';
 
 // All tests share the plugins/ directory — force serial execution.
 const test = base;

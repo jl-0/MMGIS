@@ -4,7 +4,7 @@
  *          API/logger.js (redactSecrets)
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 const { expiryFrom } = require('../../plugins/core/backend/LongTermToken/routes/longtermtokens');
 const { redactSecrets, cleanFields } = require('../../API/logger');

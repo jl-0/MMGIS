@@ -4,7 +4,7 @@
  * reach GDAL or the filesystem.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 const path = require('path');
 const validateMissionsPath = require('../../API/validateMissionsPath');
 

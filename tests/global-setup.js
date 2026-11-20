@@ -296,6 +296,13 @@ export default async function globalSetup() {
     ENABLE_MMGIS_WEBSOCKETS: '',
     ENABLE_CONFIG_WEBSOCKETS: '',
   };
+  // Coverage (npm run test:coverage / CI): the server writes V8 coverage to
+  // NODE_V8_COVERAGE when it exits. A process killed by a signal writes nothing,
+  // so preload a handler that turns SIGTERM into a normal exit.
+  if (process.env.NODE_V8_COVERAGE) {
+    const preload = resolve(process.cwd(), 'tests/reporting/coverage-exit-on-signal.cjs');
+    serverEnv.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''} --require ${JSON.stringify(preload)}`.trim();
+  }
 
   const server = spawn('node', [resolve(process.cwd(), 'scripts/server.js')], {
     env: serverEnv,
@@ -321,7 +328,9 @@ export default async function globalSetup() {
   const killServer = async () => {
     console.log('[global-teardown] Stopping test server and adjacent servers...');
     try { process.kill(-server.pid, 'SIGTERM'); } catch { /* already dead */ }
-    await sleep(2000);
+    // Give the server time to exit cleanly (and flush V8 coverage) before SIGKILL.
+    const deadline = Date.now() + (process.env.NODE_V8_COVERAGE ? 30000 : 2000);
+    while (server.exitCode === null && server.signalCode === null && Date.now() < deadline) await sleep(200);
     try { process.kill(-server.pid, 'SIGKILL'); } catch { /* already dead */ }
     console.log('[global-teardown] Server stopped.');
   };

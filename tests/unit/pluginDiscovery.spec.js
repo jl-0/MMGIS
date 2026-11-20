@@ -6,7 +6,7 @@
  * for the discovery functions. Each test cleans up the tree afterwards.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 const fs = require('fs');
 const os = require('os');

@@ -7,7 +7,7 @@
  * - bump-version.yml does not use the unsafe `node -e "require('./package.json')"` pattern
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 import fs from 'fs';
 import path from 'path';
 

@@ -2,7 +2,7 @@
  * Unit tests for adjacent-servers/validateTitilerUrl.js, the TITILER_ALLOWED_URL_PATTERNS check.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 const createTitilerUrlValidator = require('../../adjacent-servers/validateTitilerUrl');
 
 function validator(patterns) {

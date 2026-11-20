@@ -5,7 +5,7 @@
  * its required fields (name, interactionId, paths) are enforced.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 const {
     validatePluginConfig,

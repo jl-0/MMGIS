@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../helpers/test.js';
 import { waitForMapReady, getMapCenter, getMapZoom } from '../../helpers/map-helpers.js';
 import { MISSION_SITES } from '../../fixtures/mission-config.js';
 

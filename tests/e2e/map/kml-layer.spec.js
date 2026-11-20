@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../helpers/test.js';
 import { waitForMapReady, waitForTilesLoaded } from '../../helpers/map-helpers.js';
 import { MissionPage } from '../../pages/MissionPage.js';
 import { LayersPanelPage } from '../../pages/LayersPanelPage.js';

@@ -5,7 +5,7 @@
  * always-async return shape that GlobeRenderer.addLayer/Map_ rely on.
  */
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../helpers/test.js";
 
 const {
   normalizeOp,

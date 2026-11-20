@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 /**
  * Smoke tests for MMGIS application

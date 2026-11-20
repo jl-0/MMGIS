@@ -8,7 +8,7 @@
  * a second subtree and keep the two in agreement.
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test.js'
 import {
     normalizeDefaultInteractions,
     resolveInteractionConfig,

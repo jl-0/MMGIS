@@ -3,7 +3,7 @@
  * token allowlist applied to TiTiler `expression` parameters.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 const createTitilerExpressionValidator = require('../../adjacent-servers/validateTitilerExpression');
 const { isSafeExpression, MAX_EXPRESSION_LENGTH } = createTitilerExpressionValidator;
 

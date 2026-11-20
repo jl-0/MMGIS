@@ -3,7 +3,7 @@
  * Source: API/permissions/authorize.js (pluginScope, undeclaredPluginRoutes)
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 const path = require('path');
 const express = require('express');
 

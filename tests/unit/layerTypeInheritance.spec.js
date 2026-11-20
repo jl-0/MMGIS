@@ -11,7 +11,7 @@
  * become "my plugin does nothing" — hence the cross-plugin validation here.
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test.js'
 import {
     mergeSurface,
     mergeSurfaces,

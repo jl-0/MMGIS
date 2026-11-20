@@ -6,7 +6,7 @@
  * Carriage returns are stripped to prevent log injection.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 function sanitizeForLog(str) {
   if (typeof str !== 'string') return str;

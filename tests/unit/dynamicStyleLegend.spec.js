@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../helpers/test.js";
 import { dynamicStyleLegendEntries } from "../../src/essence/Basics/Layers_/legend/dynamicStyleLegend.js";
 import { formatValue } from "../../src/essence/Basics/Layers_/render/dynamicStyle.js";
 import { compileLayerDynamicStyle } from "../../src/essence/Basics/Layers_/render/layerDynamicStyle.js";

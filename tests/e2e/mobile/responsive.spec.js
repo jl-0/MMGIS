@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../helpers/test.js';
 
 /**
  * Mobile / responsive layout tests for MMGIS.

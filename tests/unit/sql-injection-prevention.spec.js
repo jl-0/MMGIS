@@ -3,7 +3,7 @@
  * Tests Utils.forceAlphaNumUnder() sanitization function.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 const Utils = require('../../API/utils.js');
 
 test.describe('SQL Injection Prevention', () => {

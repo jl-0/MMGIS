@@ -10,7 +10,7 @@
  * dispatch through it.
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test.js'
 import {
     declaredAttachmentConfig,
     resolveAttachmentConfig,

@@ -18,7 +18,7 @@
  * awaits phases, rejects on throw) is covered in layerInterface.spec.js.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/test.js';
 
 const fs = require('fs');
 const path = require('path');

@@ -11,7 +11,7 @@
  * can't load, so this asserts the invariant at the source level.
  */
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../helpers/test.js";
 
 const fs = require("fs");
 const path = require("path");

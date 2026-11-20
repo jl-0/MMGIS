@@ -10,7 +10,7 @@
  * of its fields the other plugin is handed.
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test.js'
 import {
     resolveDeclaredReferences,
     mergeDeclaredConfig,

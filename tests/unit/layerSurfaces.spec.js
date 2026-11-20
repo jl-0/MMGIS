@@ -9,7 +9,7 @@
  * exercised directly.
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test.js'
 import {
     configForInteraction,
     runInteractions,
