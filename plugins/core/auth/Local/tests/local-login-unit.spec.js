@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../../../../../tests/helpers/test.js');
 const path = require('path');
 
 const { localLoginRefusal } = require(path.resolve(__dirname, '../routes.js'));

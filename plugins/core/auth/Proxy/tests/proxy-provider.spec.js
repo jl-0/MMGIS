@@ -1,4 +1,4 @@
-import { test, expect } from '../../helpers/test.js';
+import { test, expect } from '../../../../../tests/helpers/test.js';
 import { spawnSync } from 'child_process';
 
 /**

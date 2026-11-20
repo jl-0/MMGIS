@@ -3,7 +3,7 @@
  * The directory is a fake client; ldap-provider.spec.js runs against a real OpenLDAP.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../../../tests/helpers/test.js';
 const path = require('path');
 const { InvalidCredentialsError, SizeLimitExceededError, NoSuchObjectError, InvalidDNSyntaxError } = require('ldapts');
 

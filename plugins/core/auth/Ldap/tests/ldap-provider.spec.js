@@ -1,4 +1,4 @@
-import { test, expect, request as newRequest } from '@playwright/test';
+import { test, expect, request as newRequest } from '../../../../../tests/helpers/test.js';
 
 /**
  * E2E tests for the LDAP login provider against a real OpenLDAP directory

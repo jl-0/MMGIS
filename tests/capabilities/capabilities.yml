@@ -47,6 +47,7 @@ capabilities:
           - tests/e2e/auth/session-management.spec.js
           - tests/e2e/auth/guest-access.spec.js
           - plugins/core/backend/Users/tests/*.spec.js
+          - plugins/core/auth/Local/tests/*.spec.js
           - tests/e2e/security/local-provider-routes.spec.js
       - id: access.permissions
         name: Permissions & site access
@@ -64,12 +65,16 @@ capabilities:
           - tests/e2e/security/missions-viewing.spec.js
           - tests/e2e/configure/configure-access.spec.js
       - id: access.providers
-        name: Login providers (proxy)
-        description: Login provider plugins, including the reverse-proxy provider and its trust modes.
+        name: Login providers (proxy, LDAP)
+        description: >
+          Login provider plugins other than Local: the reverse-proxy provider and its trust
+          modes, and the LDAP provider.
         code:
           - plugins/core/auth/Proxy/**
+          - plugins/core/auth/Ldap/**
         tests:
-          - tests/e2e/proxy/*.spec.js
+          - plugins/core/auth/Proxy/tests/*.spec.js
+          - plugins/core/auth/Ldap/tests/*.spec.js
       - id: access.accounts
         name: Accounts & tokens
         description: Account administration and long-term API tokens.
